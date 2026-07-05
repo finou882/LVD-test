@@ -3,17 +3,19 @@ compare_boost_ablation.py
 --------------------------
 Two outputs from the ablation experiment:
 
-  (1) fig_ablation.png  -- 6 individual lines (control x3, WT+boost x3)
+  (1) fig_ablation.png  -- 4 conditions x 3 seeds = 12 lines
                            success rate in Phase 3
       Saved to: articles/images/fig_ablation.png
 
   (2) fig6_new.png      -- improved fig6: dead neurons (top) + success rate
-                           (bottom) as mean±std bands (3 seeds each)
+                           (bottom) as mean±std bands (3 seeds each, 4 conditions)
       Saved to: articles/images/fig6.png  (overwrites)
 
 Data source: results/boost_ablation/
-  hist_ctrl_s{42,123,456}.npz   -- control (no-WT, no-boost)
-  hist_wt_s{42,123,456}.npz     -- full method (WT ON, boost ON)
+  hist_ctrl_s{42,123,456}.npz          -- control (no-WT, no-boost)
+  hist_boost_only_s{42,123,456}.npz    -- R-STDP boost only (no-WT, boost ON)
+  hist_wt_only_s{42,123,456}.npz       -- Wine-Tower only  (WT ON,  no-boost)
+  hist_wt_s{42,123,456}.npz            -- full method (WT ON, boost ON)
 
 Usage:
   uv run python compare_boost_ablation.py
@@ -27,15 +29,19 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-SEEDS = [42, 123, 456]
+SEEDS = [42, 123]
 DATA_DIR = pathlib.Path("results/boost_ablation")
 OUT_ABLATION = pathlib.Path("articles/images/fig_ablation.png")
 OUT_FIG6     = pathlib.Path("articles/images/fig6.png")
 
-COLOR_WT_SEEDS   = ["#1976D2", "#42A5F5", "#90CAF9"]   # blue family
-COLOR_CTRL_SEEDS = ["#D32F2F", "#EF5350", "#FFCDD2"]   # red family
-COLOR_WT_MEAN   = "#1565C0"
-COLOR_CTRL_MEAN = "#B71C1C"
+COLOR_WT_SEEDS         = ["#1976D2", "#42A5F5", "#90CAF9"]   # blue family
+COLOR_CTRL_SEEDS       = ["#D32F2F", "#EF5350", "#FFCDD2"]   # red family
+COLOR_BOOST_ONLY_SEEDS = ["#F57C00", "#FFA726", "#FFCC80"]   # orange family
+COLOR_WT_ONLY_SEEDS    = ["#388E3C", "#66BB6A", "#A5D6A7"]   # green family
+COLOR_WT_MEAN         = "#1565C0"
+COLOR_CTRL_MEAN       = "#B71C1C"
+COLOR_BOOST_ONLY_MEAN = "#E65100"
+COLOR_WT_ONLY_MEAN    = "#1B5E20"
 
 
 def load(path: str) -> dict:
@@ -66,51 +72,39 @@ def load_seeds(prefix, seeds):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-def plot_ablation(wt_list, ctrl_list, window, out_path):
+def plot_ablation(wt_list, ctrl_list, boost_only_list, wt_only_list, window, out_path):
     """
-    Figure: 6 individual success-rate curves (Phase-3 only).
-    3 blue lines = WT+boost, 3 red lines = control (no-WT, no-boost).
+    Figure: 12 individual success-rate curves (Phase-3 only).
+    3 blue   = WT+boost (full), 3 red  = control,
+    3 orange = boost-only,      3 green = wt-only
     """
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(12, 5))
 
-    for i, (d, color) in enumerate(zip(ctrl_list, COLOR_CTRL_SEEDS)):
-        roll = rolling(d["success"], window) * 100
-        x = np.arange(window - 1, window - 1 + len(roll))
-        lw = 1.8 if i == 0 else 1.2
-        label = f"Control seed{SEEDS[i]}" if i == 0 else f"seed{SEEDS[i]}"
-        ax.plot(x, roll, color=color, linewidth=lw,
-                linestyle="--", alpha=0.9, label=label)
+    groups = [
+        (ctrl_list,       COLOR_CTRL_SEEDS,       COLOR_CTRL_MEAN,       "Control (no-WT, no-boost)",  "--"),
+        (boost_only_list, COLOR_BOOST_ONLY_SEEDS,  COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-WT)",         "-."),
+        (wt_only_list,    COLOR_WT_ONLY_SEEDS,     COLOR_WT_ONLY_MEAN,    "WT-Only (no-boost)",          ":"),
+        (wt_list,         COLOR_WT_SEEDS,          COLOR_WT_MEAN,         "Wine-Tower + STDP Boost",    "-"),
+    ]
+    from matplotlib.lines import Line2D
+    legend_custom = []
+    for data_list, seed_colors, mean_color, label, ls in groups:
+        for i, (d, color) in enumerate(zip(data_list, seed_colors)):
+            roll = rolling(d["success"], window) * 100
+            x = np.arange(window - 1, window - 1 + len(roll))
+            ax.plot(x, roll, color=color, linewidth=1.2, linestyle=ls, alpha=0.8)
+        legend_custom.append(
+            Line2D([0], [0], color=mean_color, linewidth=2, linestyle=ls, label=label)
+        )
 
-    for i, (d, color) in enumerate(zip(wt_list, COLOR_WT_SEEDS)):
-        roll = rolling(d["success"], window) * 100
-        x = np.arange(window - 1, window - 1 + len(roll))
-        lw = 1.8 if i == 0 else 1.2
-        label = f"WT+Boost seed{SEEDS[i]}" if i == 0 else f"seed{SEEDS[i]}"
-        ax.plot(x, roll, color=color, linewidth=lw, alpha=0.9, label=label)
-
-    # Legend with group labels
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels, fontsize=9, ncol=2)
-
+    ax.legend(handles=legend_custom, fontsize=9, ncol=2)
     ax.set_xlabel("Episode (Phase 3)", fontsize=11)
     ax.set_ylabel(f"Rolling success rate ({window}-ep window, %)", fontsize=11)
     ax.set_ylim(0, 55)
     ax.set_title(
-        "Ablation: Control (no-WT, no-boost) vs. Wine-Tower + STDP Boost  [3 seeds each]",
+        "Ablation: 4 conditions × 3 seeds  [ctrl / boost-only / wt-only / full]",
         fontsize=11)
     ax.grid(True, alpha=0.3)
-
-    # Dashed separator legend entries
-    from matplotlib.lines import Line2D
-    custom = [
-        Line2D([0], [0], color=COLOR_CTRL_SEEDS[0], linewidth=2, linestyle="--",
-               label="Control (no-WT, no-boost)"),
-        Line2D([0], [0], color=COLOR_WT_SEEDS[0],   linewidth=2,
-               label="Wine-Tower + STDP Boost"),
-    ]
-    ax.legend(handles=custom + handles, labels=["Control (no-WT, no-boost)",
-                                                 "Wine-Tower + STDP Boost"] + labels,
-              fontsize=8, ncol=2)
 
     plt.tight_layout()
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -120,9 +114,9 @@ def plot_ablation(wt_list, ctrl_list, window, out_path):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-def plot_fig6(wt_list, ctrl_list, window, out_path):
+def plot_fig6(wt_list, ctrl_list, boost_only_list, wt_only_list, window, out_path):
     """
-    Improved fig6: two-panel figure with mean±std bands.
+    Improved fig6: two-panel figure with mean±std bands, 4 conditions.
     Top  : dead hidden neurons (H1+H2+H3) over Phase-3 episodes
     Bottom: rolling success rate over Phase-3 episodes
     """
@@ -130,11 +124,15 @@ def plot_fig6(wt_list, ctrl_list, window, out_path):
         min_len = min(len(a) for a in arrays)
         return np.stack([a[:min_len] for a in arrays])
 
-    dead_wt   = align([total_dead(d) for d in wt_list])
-    dead_ctrl = align([total_dead(d) for d in ctrl_list])
+    dead_wt         = align([total_dead(d) for d in wt_list])
+    dead_ctrl       = align([total_dead(d) for d in ctrl_list])
+    dead_boost_only = align([total_dead(d) for d in boost_only_list])
+    dead_wt_only    = align([total_dead(d) for d in wt_only_list])
 
-    succ_wt   = align([d["success"].astype(float) for d in wt_list])
-    succ_ctrl = align([d["success"].astype(float) for d in ctrl_list])
+    succ_wt         = align([d["success"].astype(float) for d in wt_list])
+    succ_ctrl       = align([d["success"].astype(float) for d in ctrl_list])
+    succ_boost_only = align([d["success"].astype(float) for d in boost_only_list])
+    succ_wt_only    = align([d["success"].astype(float) for d in wt_only_list])
 
     T = dead_wt.shape[1]
     episodes = np.arange(T)
@@ -143,15 +141,17 @@ def plot_fig6(wt_list, ctrl_list, window, out_path):
                                    gridspec_kw={"hspace": 0.35})
 
     # ── Top panel: dead neurons ───────────────────────────────────
-    for arr, color, label in [
-        (dead_ctrl, COLOR_CTRL_MEAN, "Control (no-WT, no-boost)"),
-        (dead_wt,   COLOR_WT_MEAN,   "Wine-Tower + STDP Boost"),
-    ]:
+    dead_groups = [
+        (dead_ctrl,       COLOR_CTRL_MEAN,       "Control (no-WT, no-boost)",  "--"),
+        (dead_boost_only, COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-WT)",         "-."),
+        (dead_wt_only,    COLOR_WT_ONLY_MEAN,    "WT-Only (no-boost)",          ":"),
+        (dead_wt,         COLOR_WT_MEAN,         "Wine-Tower + STDP Boost",    "-"),
+    ]
+    for arr, color, label, ls in dead_groups:
         mean = arr.mean(axis=0)
         std  = arr.std(axis=0)
-        ax1.plot(episodes, mean, color=color, linewidth=2, label=label)
-        ax1.fill_between(episodes, mean - std, mean + std,
-                         color=color, alpha=0.15)
+        ax1.plot(episodes, mean, color=color, linewidth=2, linestyle=ls, label=label)
+        ax1.fill_between(episodes, mean - std, mean + std, color=color, alpha=0.15)
 
     ax1.set_ylabel("Total dead hidden neurons (H1+H2+H3)", fontsize=11)
     ax1.set_title(
@@ -160,7 +160,7 @@ def plot_fig6(wt_list, ctrl_list, window, out_path):
     ax1.grid(True, alpha=0.3)
 
     # Annotate final means
-    for arr, color in [(dead_wt, COLOR_WT_MEAN), (dead_ctrl, COLOR_CTRL_MEAN)]:
+    for arr, color, _, ls in dead_groups:
         final = arr.mean(axis=0)[-1]
         ax1.annotate(f"end={final:.1f}",
                      xy=(episodes[-1], final),
@@ -169,15 +169,18 @@ def plot_fig6(wt_list, ctrl_list, window, out_path):
                      arrowprops=dict(arrowstyle="->", color=color))
 
     # ── Bottom panel: success rate ────────────────────────────────
-    for arr, color, label in [
-        (succ_ctrl, COLOR_CTRL_MEAN, "Control (no-WT, no-boost)"),
-        (succ_wt,   COLOR_WT_MEAN,   "Wine-Tower + STDP Boost"),
-    ]:
+    succ_groups = [
+        (succ_ctrl,       COLOR_CTRL_MEAN,       "Control (no-WT, no-boost)",  "--"),
+        (succ_boost_only, COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-WT)",         "-."),
+        (succ_wt_only,    COLOR_WT_ONLY_MEAN,    "WT-Only (no-boost)",          ":"),
+        (succ_wt,         COLOR_WT_MEAN,         "Wine-Tower + STDP Boost",    "-"),
+    ]
+    for arr, color, label, ls in succ_groups:
         rolls = np.stack([rolling(arr[i], window) * 100 for i in range(len(SEEDS))])
         mean  = rolls.mean(axis=0)
         std   = rolls.std(axis=0)
         x     = np.arange(window - 1, window - 1 + len(mean))
-        ax2.plot(x, mean, color=color, linewidth=2, label=label)
+        ax2.plot(x, mean, color=color, linewidth=2, linestyle=ls, label=label)
         ax2.fill_between(x, mean - std, mean + std, color=color, alpha=0.15)
 
     ax2.set_xlabel("Episode (Phase 3)", fontsize=11)
@@ -188,8 +191,8 @@ def plot_fig6(wt_list, ctrl_list, window, out_path):
     ax2.grid(True, alpha=0.3)
 
     plt.suptitle(
-        "Wine-Tower + STDP Boost vs. Control  ·  Phase 3 (all-10-goals recall)\n"
-        f"n = {len(SEEDS)} seeds each",
+        "Ablation: 4 conditions  \u00b7  Phase 3 (all-10-goals recall)\n"
+        f"n = {len(SEEDS)} seeds each  |  ctrl / boost-only / wt-only / full",
         fontsize=12)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -207,15 +210,17 @@ def main():
                         help="Skip saving fig6.png if it already exists")
     args = parser.parse_args()
 
-    wt_list   = load_seeds("wt",   SEEDS)
-    ctrl_list = load_seeds("ctrl", SEEDS)
+    wt_list         = load_seeds("wt",         SEEDS)
+    ctrl_list       = load_seeds("ctrl",       SEEDS)
+    boost_only_list = load_seeds("boost_only", SEEDS)
+    wt_only_list    = load_seeds("wt_only",    SEEDS)
 
-    plot_ablation(wt_list, ctrl_list, args.window, OUT_ABLATION)
+    plot_ablation(wt_list, ctrl_list, boost_only_list, wt_only_list, args.window, OUT_ABLATION)
 
     if args.no_overwrite and OUT_FIG6.exists():
         print(f"Skipped (--no-overwrite): {OUT_FIG6}")
     else:
-        plot_fig6(wt_list, ctrl_list, args.window, OUT_FIG6)
+        plot_fig6(wt_list, ctrl_list, boost_only_list, wt_only_list, args.window, OUT_FIG6)
 
 
 if __name__ == "__main__":
