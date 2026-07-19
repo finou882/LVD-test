@@ -49,6 +49,8 @@ class LifelongTrainer:
         epsilon_start: float = 0.3,
         epsilon_end: float = 0.05,
         wine_tower: bool = True,
+        wine_strength: float = 50.0,
+        homeo_gain: float = 1.0,
         stdp_boost: bool = True,
     ):
         self.agent = agent
@@ -65,6 +67,8 @@ class LifelongTrainer:
         self.epsilon_end = epsilon_end
         self._wine_tower_enabled = wine_tower
         self._wine_tower_interval = 20   # run Wine-Tower pass every N episodes
+        self._wine_strength = wine_strength
+        self._homeo_gain = homeo_gain
         self._stdp_boost = stdp_boost
 
         # Statistics
@@ -171,27 +175,27 @@ class LifelongTrainer:
             self._run_episode(cues, target=target, learn=True)
 
     # ------------------------------------------------------------------
-    def _wine_tower_pass(
-        self,
-        wine_strength: float = 50.0,
-        n_passes: int = 2,
-    ) -> None:
-        """
-        Wine-Tower offline replay: spike-triggered current injection into dead
-        hidden neurons via positive W_rec connections from live neighbours.
-        Only runs when dead neurons are present.
-        """
-        has_dead = any(h.dead_mask.any() for h in self.agent.hiddens)
-        if not has_dead:
-            return
-        if not self._replay_buf:
-            return
-        # Select top-K highest-reward episodes for targeted replay
+    def _sample_top_trajectories(self) -> List[list]:
+        """Helper to get trajectories from top performing episodes."""
         k = min(len(self._replay_buf), 5)
         sorted_buf = sorted(self._replay_buf, key=lambda x: x[3], reverse=True)
-        top_trajs = [t for _, _, t, _ in sorted_buf[:k]]
+        return [t for _, _, t, _ in sorted_buf[:k]]
+
+    def _wine_tower_pass(self, n_passes: int = 2) -> None:
+        """
+        Wine-Tower offline replay: spike-triggered current injection into dead
+        neurons to forcefully un-stick them from WTA depression.
+        """
+        top_trajs = self._sample_top_trajectories()
+        if not top_trajs:
+            return
+
+        # Do a few rapid offline passes
         self.agent.wine_tower_replay(
-            top_trajs, wine_strength=wine_strength, n_passes=n_passes
+            top_trajs, 
+            wine_strength=self._wine_strength,
+            homeo_gain=self._homeo_gain,
+            n_passes=n_passes
         )
 
     # ------------------------------------------------------------------

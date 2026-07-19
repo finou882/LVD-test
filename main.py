@@ -120,6 +120,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--save-history", type=str, default=None,
                         metavar="FILE.npz",
                         help="Save training history (dead neurons, acc, etc.) to this file.")
+    parser.add_argument("--wine-strength", type=float, default=50.0,
+                        help="Alpha multiplier for Wine-Tower diffusion current.")
+    parser.add_argument("--homeo-gain", type=float, default=1.0,
+                        help="Multiplier for input current to dead neurons during Wine-Tower (Homeostatic Scaling).")
 
     return parser.parse_args()
 
@@ -402,6 +406,8 @@ def main():
         replay_interval=args.replay_interval,
         verbose_every=args.verbose_every,
         wine_tower=not args.no_wine_tower,
+        wine_strength=args.wine_strength,
+        homeo_gain=args.homeo_gain,
         stdp_boost=not args.no_boost,
     )
 

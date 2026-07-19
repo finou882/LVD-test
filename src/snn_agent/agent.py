@@ -185,6 +185,7 @@ class SNNAgent:
         self,
         trajectories: list,
         wine_strength: float = 50.0,
+        homeo_gain: float = 1.0,
         n_passes: int = 2,
     ) -> None:
         has_dead = any(h.dead_mask.any() for h in self.hiddens)
@@ -216,6 +217,9 @@ class SNNAgent:
                         # H1
                         I_h1 = self.W_in.forward(in_spikes)
                         if self.recurrent: I_h1 += self.W_rec1.forward(self._last_h_spikes[0])
+                        # Homeostatic Scaling: boost input current for dead neurons
+                        if homeo_gain != 1.0 and self.hidden1.dead_mask.any():
+                            I_h1 = np.where(self.hidden1.dead_mask, I_h1 * homeo_gain, I_h1)
                         assist_I_h1 = None
                         if self.recurrent and self.hidden1.dead_mask.any():
                             live = self._last_h_spikes[0] & ~self.hidden1.dead_mask
@@ -226,6 +230,9 @@ class SNNAgent:
                         # H2
                         I_h2 = self.W_12.forward(h1_spikes)
                         if self.recurrent: I_h2 += self.W_rec2.forward(self._last_h_spikes[1])
+                        # Homeostatic Scaling
+                        if homeo_gain != 1.0 and self.hidden2.dead_mask.any():
+                            I_h2 = np.where(self.hidden2.dead_mask, I_h2 * homeo_gain, I_h2)
                         assist_I_h2 = None
                         if self.recurrent and self.hidden2.dead_mask.any():
                             live = self._last_h_spikes[1] & ~self.hidden2.dead_mask
@@ -236,6 +243,9 @@ class SNNAgent:
                         # H3
                         I_h3 = self.W_23.forward(h2_spikes)
                         if self.recurrent: I_h3 += self.W_rec3.forward(self._last_h_spikes[2])
+                        # Homeostatic Scaling
+                        if homeo_gain != 1.0 and self.hidden3.dead_mask.any():
+                            I_h3 = np.where(self.hidden3.dead_mask, I_h3 * homeo_gain, I_h3)
                         assist_I_h3 = None
                         if self.recurrent and self.hidden3.dead_mask.any():
                             live = self._last_h_spikes[2] & ~self.hidden3.dead_mask
