@@ -205,7 +205,7 @@ class SNNAgent:
             syn.lr *= 10.0
 
         for _ in range(n_passes):
-            W_pos_list = [np.maximum(0.0, syn.W) for syn in self.recurrent_synapses] if self.recurrent else [None, None, None]
+            W_list = [syn.W for syn in self.recurrent_synapses] if self.recurrent else [None, None, None]
             
             for traj in trajectories:
                 self.reset_episode()
@@ -223,7 +223,7 @@ class SNNAgent:
                         assist_I_h1 = None
                         if self.recurrent and self.hidden1.dead_mask.any():
                             live = self._last_h_spikes[0] & ~self.hidden1.dead_mask
-                            assist_I_h1 = wine_strength * (W_pos_list[0] @ live.astype(np.float64))
+                            assist_I_h1 = wine_strength * (W_list[0] @ live.astype(np.float64))
                         h1_spikes = self.hidden1.step(I_h1, assist_I=assist_I_h1)
                         revived[0] |= (h1_spikes & self.hidden1.dead_mask)
 
@@ -236,7 +236,7 @@ class SNNAgent:
                         assist_I_h2 = None
                         if self.recurrent and self.hidden2.dead_mask.any():
                             live = self._last_h_spikes[1] & ~self.hidden2.dead_mask
-                            assist_I_h2 = wine_strength * (W_pos_list[1] @ live.astype(np.float64))
+                            assist_I_h2 = wine_strength * (W_list[1] @ live.astype(np.float64))
                         h2_spikes = self.hidden2.step(I_h2, assist_I=assist_I_h2)
                         revived[1] |= (h2_spikes & self.hidden2.dead_mask)
 
@@ -249,7 +249,7 @@ class SNNAgent:
                         assist_I_h3 = None
                         if self.recurrent and self.hidden3.dead_mask.any():
                             live = self._last_h_spikes[2] & ~self.hidden3.dead_mask
-                            assist_I_h3 = wine_strength * (W_pos_list[2] @ live.astype(np.float64))
+                            assist_I_h3 = wine_strength * (W_list[2] @ live.astype(np.float64))
                         h3_spikes = self.hidden3.step(I_h3, assist_I=assist_I_h3)
                         revived[2] |= (h3_spikes & self.hidden3.dead_mask)
 
