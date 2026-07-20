@@ -254,14 +254,8 @@ def plot_weight_heatmaps(agent, save_path: str) -> None:
     # Input feature labels
     from src.snn_agent.environment import N_GOALS
     input_labels = (
-<<<<<<< Updated upstream
-        [f"J{i}" for i in range(N_JUNCTIONS)]
-        + [f"G{i}" for i in range(N_GOALS)]
-        + ["CUE"]
-=======
         [f"G{i}" for i in range(N_GOALS)]           # goal cue one-hot
         + ["CUE"]                                       # hint flag
->>>>>>> Stashed changes
     )
     action_labels = ["A0", "A1", "A2", "A3", "A4", "A5"]
 
