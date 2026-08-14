@@ -1,0 +1,125 @@
+\documentclass{article}
+
+\usepackage{PRIMEarxiv}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{luatexja-fontspec}
+\graphicspath{{./images/}}
+
+\pagestyle{fancy}
+\thispagestyle{empty}
+\rhead{ \textit{ }}
+\fancyhead[LO]{Structural Recovery and Functional Reintegration in Recurrent SNNs}
+
+\title{再帰的結合を介した電位拡散によるWTA型Spiking Neural Networkの構造的ニューロン復旧とネガティブ拡散を用いたスパース性の維持}
+
+\author{
+  Fumiaki INOUE \\
+  \texttt{finou882@github} \\
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Spiking Neural Network（SNN）において、Winner-Take-All（WTA）競争は学習のスパース性を高める一方、一部のニューロン群を永続的な無活動状態（Dead-Neuron問題）に陥らせ、ネットワークの長期的な表現能力を低下させる。本研究では、局所的な再帰的シナプス結合を利用して無活動状態のニューロンへ膜電位を伝播・拡散させる「標的型再帰再活性化（Targeted Recurrent Reactivation; TRR）」法を提案し、6方向対称メイズ（6-Arm Star Maze / Hexable-Maze）環境におけるタスク遷移を通じて、構造的回復と機能的再統合のダイナミクスを調査した。実験の結果、TRRは無活動化したニューロンの構造的復旧を達成するが、全ニューロンを完全に復旧させることが機能的統合の最適解ではないことが明らかになった。本研究では、負の重みを通じた「ネガティブ拡散（抑制的波及）」を取り入れることで、あえて一部のニューロンを死なせたまま（スパース性を維持）にし、WTAアトラクターの過剰な呪縛を防ぐ新しいメタ可塑性の制御手法を提案する。
+
+ただし、生体の脳が三次元的な空間配置においてノイズを拡散させているのに対し、従来のSNNは二次元的な層構造に制限されている。そこで本研究では、活性化しているニューロンからの再帰的結合経路を通じて膜電位を「漏れ拡散」させ、無活動ニューロンを標的として再活性化する「標的型再帰再活性化（Targeted Recurrent Reactivation; TRR）」モデルを構築した。本研究で開発したソースコードおよび実験データは、GitHubリポジトリにて公開している~\cite{fumiaki2026wine}。
+
+\section{Related Work: Dead-Neuron問題への既存のアプローチ}
+SNNの学習におけるニューロンの沈黙は、ネットワークの表現能力を永続的に低下させる。これに対し、既存研究では主に以下の2つのアプローチが取られてきた。
+
+\begin{enumerate}
+    \item \textbf{Homeostatic Scaling（恒常性スケーリング）}: 
+    ニューロンの発火率に基づき、活動が低下した際に閾値を下げる、あるいは重みを底上げする手法である~\cite{brunel2000dynamics}。しかし、これは報酬信号などのタスク文脈を無視するため、ノイズを増幅させ、獲得済みの知識を破壊するリスクがある。
+    \item \textbf{Neurogenesis（神経新生）}: 
+    リソース不足時に新しいニューロンを追加する手法である。物理的な容量不足は解消できるが、複雑な回路への機能的配線・統合コストが高い。
+\end{enumerate}
+
+提案する\textbf{TRRモデル}は、これらに対し、新たなネットワーク資源（追加ニューロン）を投入することなく、「活性状態のニューロン」の電位エネルギーを「無活動なニューロン」へ再帰結合を介して再分配する。さらに、「経験リプレイ（Experience Replay）」と同期してシナプス荷重の更新を行うことで、効率的な資源の再配分を実現する。
+
+\section{System Architecture}
+\subsection{Neuron Model and Encoding}
+エージェントはLeaky Integrate-and-Fire (LIF) ニューロンで構成される~\cite{abbott1999lapicque}。膜電位 $V_i$ のダイナミクスは次式に従う：
+\begin{equation}
+\tau_m \frac{dV_i}{dt} = -(V_i - V_{rest}) + R_m I_{ext}
+\end{equation}
+迷路の観測情報は、各次元の強度に応じた確率でスパイクを発生させるPoisson Encodingによってスパイク列に変換され、10マイクロステップにわたって供給される~\cite{10.1371/journal.pcbi.0030031}。
+
+\subsection{k-WTA Inhibition}
+各隠れ層には側抑制（k-WTA）が導入されている。各ステップの最後に、膜電位が高い上位 $k$ 個のニューロンのみが発火し、他のニューロンの電位はリセットされる。この強力な競争がスパースな専門化を促す一方で、本質的な「Winners Take All」の原理により非発火ニューロンの死を加速させる~\cite{hellman1998winners}。
+
+\subsection{Targeted Recurrent Reactivation (TRR) の定式化}
+無活動ニューロン $i$ への再活性化補助電流 $I_{assist,i}$ は、活性ニューロン $j$ からの再帰結合を利用して次のように定義される：
+\begin{equation}
+I_{assist,i} = \alpha \sum_{j \in \text{Live}} W_{ij}^{rec} \cdot S_j(t)
+\end{equation}
+ここで、結合重み $W_{ij}^{rec}$ は正の値（興奮性）だけでなく負の値（抑制性）も許容する。これにより、不要なニューロンの過剰な復活を抑える「ネガティブ拡散（Negative Diffusion）」が機能する。比較実験として、負の拡散を制限した場合（$\max(0, W_{ij}^{rec})$）や、恒常性スケーリング（Homeostatic Scaling）を併用したシナリオも検証した。
+リプレイフェーズにおける急激な再結合と可塑性向上のため、重み更新 $\Delta W$ はLTP（長期増強）を促進するR-STDP学習則を用いる：
+\begin{equation}
+\Delta W = \eta_{boost} \cdot \max(0, R) \cdot (A_+ \cdot x_{pre} \cdot S_{post} - A_- \cdot x_{post} \cdot S_{pre})
+\end{equation}
+
+表1に、本実験で使用した主要なハイパーパラメータを記す。
+
+\begin{table}[h]
+\centering
+\caption{シミュレーションに使用した主要なハイパーパラメータ}
+\begin{tabular}{lll}
+\toprule
+カテゴリ & パラメータ & 値 \\ \midrule
+LIF Neuron & $\tau_m$ (膜時定数) & 20.0 ms \\ 
+ & $V_{rest} / V_{thresh}$ & 0.0 mV / 1.0 mV \\ \midrule
+STDP & $\eta$ (通常学習率) & 0.005 \\ 
+ & $A_+ / A_-$ (振幅比) & 0.02 / 0.01 \\ \midrule
+TRR (Proposed) & $\alpha$ (Diffusion Strength) & 50.0 \\ 
+ & $\eta_{boost}$ (ブースト学習率) & $\eta \times 10.0$ \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\section{Hypothesis Validation: 6-Arm Star Mazeを巡る旅}
+% TODO: 以下のグラフ画像(fig1, fig2, fig6)はMultiple T-Maze時代のもの。後ほどHexable-Maze版に差し替えること。
+
+\subsection{Stage 1: モノカルチャーの形成 (Phase 1-2)}
+エージェントを特定のゴールに執着させることで、意図的に「リソースの死」を作り出した。図1に示す重みのヒートマップは、ネットワークが単一の経路に過剰適応し、他の可能性を司るニューロンが完全に排除された「モノカルチャー」状態を示している。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\linewidth]{fig1}
+    \caption{Phase 1/2における重みの可視化。特定の経路への過剰な専門化が見られる。}
+    \label{fig:fig1}
+\end{figure}
+
+\subsection{Stage 2: 構造的復旧 (Phase 3 with TRR)}
+対照群（No-TRR）はタスク変更に伴い破滅的忘却とニューロン資源の枯渇に陥った（図2）。これに対し、提案手法であるTRR適用群は、図6(上段)に示す通り、無活動化していたニューロンをほぼ全数再活性化させた。これはネットワーク資源の構造的復旧におけるTRRの有効性を示している。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\linewidth]{fig2}
+    \includegraphics[width=0.45\linewidth]{fig6}
+    \caption{左: No-TRRにおけるニューロン資源的枯渇。右: TRRによる構造的復旧(上段)と正答率の推移(下段)。}
+    \label{fig:comparison_structural}
+\end{figure}
+
+\subsection{Stage 3: 構造的復旧と機能的再統合の解離（ネガティブ拡散の効果）}
+旧来のTRR（ネガティブ拡散なし）を用いた場合、死ニューロンはほぼ完全に（0個まで）復旧するが、正答率は伸び悩み、以前のタスクで形成された「WTAアトラクター盆地」の引力から脱却できなかった。
+しかし、ネガティブ拡散を導入した新型TRRでは、あえて一部のニューロン（H1層において10〜15個程度）を死なせたまま（スパース性を維持）にすることで、正答率の低下を防ぎつつアトラクターの呪縛を緩和できることが複数シードの実験から明らかになった。
+
+\section{Discussion: スパース性の維持とメタ可塑性}
+本研究で見出された「構造回復と機能の解離」は、リソースの完全復旧が必ずしも機能的再統合の最適解ではないことを示している。初期タスクの学習で深く形成されたアトラクターにおいて、ネガティブ拡散による局所的な抑制（あえて復活させない制御）は、ネットワークが過剰な再結合で混乱するのを防ぐ「メタ可塑性」の重要なメカニズムである。
+
+\section{Conclusion}
+本研究では、WTA競争を伴うSNNの無活動ニューロン問題に対し、ネガティブ拡散を含む局所再帰的な電位拡散モデル（TRR）を提案し、6-Arm Star Maze環境においてその有効性を実証した。「死ニューロンをすべて復活させる」のではなく、「ネガティブ拡散によって適度なスパース性を保ちながら一部を復旧させる」ことが、生涯学習におけるアトラクターの緩和制御に不可欠であるという新しい計算論的知見を示した。
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}

@@ -187,6 +187,7 @@ class SNNAgent:
         wine_strength: float = 50.0,
         homeo_gain: float = 1.0,
         n_passes: int = 2,
+        neg_diff: bool = True,
     ) -> None:
         has_dead = any(h.dead_mask.any() for h in self.hiddens)
         if not has_dead:
@@ -223,7 +224,8 @@ class SNNAgent:
                         assist_I_h1 = None
                         if self.recurrent and self.hidden1.dead_mask.any():
                             live = self._last_h_spikes[0] & ~self.hidden1.dead_mask
-                            assist_I_h1 = wine_strength * (W_list[0] @ live.astype(np.float64))
+                            W_eff = W_list[0] if neg_diff else np.maximum(0, W_list[0])
+                            assist_I_h1 = wine_strength * (W_eff @ live.astype(np.float64))
                         h1_spikes = self.hidden1.step(I_h1, assist_I=assist_I_h1)
                         revived[0] |= (h1_spikes & self.hidden1.dead_mask)
 
@@ -236,7 +238,8 @@ class SNNAgent:
                         assist_I_h2 = None
                         if self.recurrent and self.hidden2.dead_mask.any():
                             live = self._last_h_spikes[1] & ~self.hidden2.dead_mask
-                            assist_I_h2 = wine_strength * (W_list[1] @ live.astype(np.float64))
+                            W_eff = W_list[1] if neg_diff else np.maximum(0, W_list[1])
+                            assist_I_h2 = wine_strength * (W_eff @ live.astype(np.float64))
                         h2_spikes = self.hidden2.step(I_h2, assist_I=assist_I_h2)
                         revived[1] |= (h2_spikes & self.hidden2.dead_mask)
 
@@ -249,7 +252,8 @@ class SNNAgent:
                         assist_I_h3 = None
                         if self.recurrent and self.hidden3.dead_mask.any():
                             live = self._last_h_spikes[2] & ~self.hidden3.dead_mask
-                            assist_I_h3 = wine_strength * (W_list[2] @ live.astype(np.float64))
+                            W_eff = W_list[2] if neg_diff else np.maximum(0, W_list[2])
+                            assist_I_h3 = wine_strength * (W_eff @ live.astype(np.float64))
                         h3_spikes = self.hidden3.step(I_h3, assist_I=assist_I_h3)
                         revived[2] |= (h3_spikes & self.hidden3.dead_mask)
 

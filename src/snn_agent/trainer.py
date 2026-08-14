@@ -52,6 +52,7 @@ class LifelongTrainer:
         wine_strength: float = 50.0,
         homeo_gain: float = 1.0,
         stdp_boost: bool = True,
+        neg_diff: bool = True,
     ):
         self.agent = agent
         self.env = env
@@ -70,6 +71,7 @@ class LifelongTrainer:
         self._wine_strength = wine_strength
         self._homeo_gain = homeo_gain
         self._stdp_boost = stdp_boost
+        self._neg_diff = neg_diff
 
         # Statistics
         self.history: Dict[str, List] = {
@@ -195,7 +197,8 @@ class LifelongTrainer:
             top_trajs, 
             wine_strength=self._wine_strength,
             homeo_gain=self._homeo_gain,
-            n_passes=n_passes
+            n_passes=n_passes,
+            neg_diff=self._neg_diff
         )
 
     # ------------------------------------------------------------------

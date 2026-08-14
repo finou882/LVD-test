@@ -117,6 +117,8 @@ def parse_args() -> argparse.Namespace:
                         help="Disable Wine-Tower recovery (for ablation/control experiments).")
     parser.add_argument("--no-boost", action="store_true",
                         help="Disable STDP reward amplification (use raw reward, no x20/x2 scaling).")
+    parser.add_argument("--no-neg-diff", action="store_true",
+                        help="Disable negative diffusion (apply max(0, W) for recurrent weights in Wine-Tower).")
     parser.add_argument("--save-history", type=str, default=None,
                         metavar="FILE.npz",
                         help="Save training history (dead neurons, acc, etc.) to this file.")
@@ -403,6 +405,7 @@ def main():
         wine_strength=args.wine_strength,
         homeo_gain=args.homeo_gain,
         stdp_boost=not args.no_boost,
+        neg_diff=not args.no_neg_diff,
     )
 
     # Load model if requested (before training)
