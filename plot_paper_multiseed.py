@@ -50,7 +50,7 @@ def main():
 
     # --- FIG 2: Baseline vs Old WT (Structural Recovery) ---
     fig2, axes2 = plt.subplots(1, 2, figsize=(14, 6))
-    fig2.suptitle("Fig 2: Structural Recovery in Wine-Tower (Multiple Seeds)", fontsize=16)
+    fig2.suptitle("(a) Structural Recovery in Wine-Tower", fontsize=16)
     
     if ep_no is not None:
         plot_mean_std(axes2[0], ep_no, dead_no, "black", "Baseline (No TRR)", "--")
@@ -74,7 +74,7 @@ def main():
 
     # --- FIG 6: Old WT vs New WT (Sparse Maintenance & Negative Diffusion) ---
     fig6, axes6 = plt.subplots(1, 2, figsize=(14, 6))
-    fig6.suptitle("Fig 6: Maintenance of Sparsity via Negative Diffusion (Multiple Seeds)", fontsize=16)
+    fig6.suptitle("(b) Maintenance of Sparsity via Negative Diffusion", fontsize=16)
     
     if ep_old is not None:
         plot_mean_std(axes6[0], ep_old, dead_old, "blue", "WT v1 (alpha=50, no-neg, no-homeo)")
