@@ -69,7 +69,7 @@ def main():
     axes2[1].legend(); axes2[1].grid(True)
     
     fig2.tight_layout()
-    fig2.savefig("articles/images/fig2.png")
+    fig2.savefig("articles/images/fig2.png", dpi=300)
     print("Saved articles/images/fig2.png")
 
     # --- FIG 6: Old WT vs New WT (Sparse Maintenance & Negative Diffusion) ---
@@ -93,7 +93,7 @@ def main():
     axes6[1].legend(); axes6[1].grid(True)
     
     fig6.tight_layout()
-    fig6.savefig("articles/images/fig6.png")
+    fig6.savefig("articles/images/fig6.png", dpi=300)
     print("Saved articles/images/fig6.png")
 
 if __name__ == "__main__":

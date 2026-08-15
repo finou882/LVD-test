@@ -35,7 +35,7 @@ Spiking Neural Network（SNN）において、Winner-Take-All（WTA）競争は�
 生体の脳が三次元的な空間配置においてノイズを拡散させているのに対し、従来のSNNは二次元的な層構造に制限されている。そこで本研究では、活性化しているニューロンからの再帰的結合経路を通じて膜電位を「漏れ拡散」させ、無活動ニューロンを標的として再活性化する「Wine-Tower (WT) 構造復旧機構」を提案する。
 
 6方向対称メイズ（6-Arm Star Maze / Hexable-Maze）環境におけるタスク遷移を通じて検証を行った結果、旧来の単なる電位拡散モデル（WT v1）は無活動ニューロンの完全な構造的復旧を達成するものの、深く刻まれたアトラクターの呪縛から逃れられず、機能的な再統合の妨げとなるパラドックスが明らかになった。
-この問題を解決するため、本研究では負の重みを通じた「ネガティブ拡散（抑制的波及）」と恒常性スケーリングを取り入れた改良モデル（WT v2）を構築した。これにより、あえて一部のニューロンを死なせたまま「スパース性」を維持することが、過度な結合による混乱を防ぐ新しいメタ可塑性の制御メカニズムであることを示す。
+この問題を解決するため、本研究では負の重みを通じた「ネガティブ拡散（抑制的波及）」と恒常性スケーリングを取り入れた改良モデル（WT v2）を構築した。これにより、あえて一部のニューロンを死なせたまま「スパース性」を維持することが、完全な構造的復旧と同等の機能性能を維持しながら、省リソースな表現を獲得できる新しいメタ可塑性の制御メカニズムであることを示す。
 本研究で開発したソースコードおよび実験データは、GitHubリポジトリにて公開している~\cite{fumiaki2026wine}。
 \end{abstract}
 
@@ -103,10 +103,10 @@ LIF Neuron & $\tau_m$ (膜時定数) & 20.0 ms \\
 STDP & $\eta$ (通常学習率) & 0.005 \\ 
  & $A_+ / A_-$ (振幅比) & 0.02 / 0.01 \\ \midrule
 WT v1 (旧モデル) & $\alpha$ (Diffusion Strength) & 50.0 \\ 
- & 恒常性スケーリング & なし \\
+ & $\gamma$ (恒常性入力ゲイン) & なし \\
  & ネガティブ拡散 & なし ($\max(0, W)$) \\ \midrule
 WT v2 (提案モデル) & $\alpha$ (Diffusion Strength) & 10.0 \\ 
- & 恒常性スケーリング & あり \\
+ & $\gamma$ (恒常性入力ゲイン) & 5.0 \\
  & ネガティブ拡散 & あり \\ \bottomrule
 \end{tabular}
 \end{table}
@@ -118,9 +118,9 @@ WT v2 (提案モデル) & $\alpha$ (Diffusion Strength) & 10.0 \\
 \subsection{Stage 1: モノカルチャーの形成 (Phase 1-2)}
 エージェントを少数の特定のゴールにのみ執着させることで、意図的に「ニューロンリソースの死」を作り出した。図1に示す重みのヒートマップは、ネットワークが単一の経路に過剰適応し、他の可能性を司るニューロン群が完全に排除された「モノカルチャー」状態を示している。
 
-\begin{figure}[htbp]
+\begin{figure}[tb]
     \centering
-    \includegraphics[width=1.0\linewidth]{fig1}
+    \includegraphics[width=0.85\linewidth]{fig1}
     \caption{Phase 1/2における重みの可視化。特定の経路への過剰な専門化が見られる。}
     \label{fig:fig1}
 \end{figure}
@@ -131,12 +131,12 @@ WT v2 (提案モデル) & $\alpha$ (Diffusion Strength) & 10.0 \\
 
 しかし、構造的な死（Dead Neurons）を完全にゼロにしたにもかかわらず、機能的パフォーマンス（正答率）は伸び悩みを見せた。WT v1は構造的復旧を達成した一方で、機能的再統合には失敗したのである。
 
-\begin{figure}[htbp]
+\begin{figure}[tb]
     \centering
-    \includegraphics[width=1.0\linewidth]{fig2}
-    \vspace{0.5cm}
+    \includegraphics[width=0.85\linewidth]{fig2}
+    \vspace{0.3cm}
 
-    \includegraphics[width=1.0\linewidth]{fig6}
+    \includegraphics[width=0.85\linewidth]{fig6}
     \caption{上(a): Baseline(黒)における資源的枯渇とWT v1(青)による構造的完全復旧。下(b): WT v1(青)とWT v2(赤)によるスパース性維持と正答率の比較。}
     \label{fig:comparison_structural}
 \end{figure}
