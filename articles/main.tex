@@ -73,7 +73,7 @@ I_{assist,i} = \alpha \sum_{j \in \text{Live}} W_{ij}^{rec} \cdot S_j(t)
     \item \textbf{WT v2（提案モデル）}: 負の重みを通じた「ネガティブ拡散（抑制的波及）」を許容し、恒常性スケーリングを併用、かつ適正な拡散強度（$\alpha=10.0$）に抑えることで、不要なニューロンの過剰な復活を防ぐ。
 \end{itemize}
 
-リプレイフェーズにおける急激な再結合と可塑性向上のため、重み更新 $\Delta W$ はLTP（長期増強）を促進するR-STDP学習則~\cite{izhikevich2007solving}を用いる：
+リプレイフェーズにおける急激な再結合と可塑性向上のため、重み更新 $\Delta W$ はLTP（長期増強）を促進するR-STDP学習則~\cite{izhikevich2007solving,bing2020indirect}を用いる：
 \begin{equation}
 \Delta W = \eta_{boost} \cdot \max(0, R) \cdot (A_+ \cdot x_{pre} \cdot S_{post} - A_- \cdot x_{post} \cdot S_{pre})
 \end{equation}
