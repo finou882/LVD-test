@@ -53,8 +53,8 @@ def main():
     fig2.suptitle("(a) Structural Recovery in Wine-Tower", fontsize=16)
     
     if ep_no is not None:
-        plot_mean_std(axes2[0], ep_no, dead_no, "black", "Baseline (No TRR)", "--")
-        plot_mean_std(axes2[1], ep_no, acc_no, "black", "Baseline (No TRR)", "--")
+        plot_mean_std(axes2[0], ep_no, dead_no, "black", "Baseline (No WT)", "--")
+        plot_mean_std(axes2[1], ep_no, acc_no, "black", "Baseline (No WT)", "--")
         
     if ep_old is not None:
         plot_mean_std(axes2[0], ep_old, dead_old, "blue", "WT v1 (alpha=50, no-neg, no-homeo)")

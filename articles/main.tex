@@ -12,6 +12,7 @@
 \usepackage{microtype}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{luatexja-fontspec}
 \graphicspath{{./images/}}
 
@@ -67,10 +68,11 @@ SNNの学習におけるニューロンの沈黙は、ネットワークの表�
 \begin{equation}
 I_{assist,i}(t) = \alpha \sum_{j \in \text{Live}} W_{ij}^{\text{eff}} \cdot S_j(t-1)
 \end{equation}
-式(2)における各代数・変数の定義を表2に示す。
+式(2)における各代数・変数の定義を表\ref{tab:variables}に示す。
 \begin{table}[htbp]
 \centering
 \caption{式(2)における各変数の定義}
+\label{tab:variables}
 \begin{tabular}{ll}
 \toprule
 変数・記号 & 定義・意味 \\ \midrule
@@ -104,11 +106,12 @@ I_{ext,i}(t) & (i \notin \text{Dead})
 \Delta W = \eta_{boost} \cdot \max(0, R) \cdot (A_+ \cdot x_{pre} \cdot S_{post} - A_- \cdot x_{post} \cdot S_{pre})
 \end{equation}
 
-表1に、WT機構の進化を含めた本実験の主要なハイパーパラメータを示す。
+表\ref{tab:hyperparams}に、WT機構の進化を含めた本実験の主要なハイパーパラメータを示す。
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \caption{シミュレーションに使用した主要なハイパーパラメータ}
+\label{tab:hyperparams}
 \begin{tabular}{lll}
 \toprule
 カテゴリ & パラメータ & 値 \\ \midrule
@@ -132,7 +135,7 @@ WT v2 & $\alpha$ (Diffusion Strength) & 10.0 \\
 \subsection{Stage 1: モノカルチャーの形成 (Phase 1-2)}
 エージェントを少数の特定のゴールにのみ執着させることで、意図的に「ニューロンリソースの死」を作り出した。図1に示す重みのヒートマップは、ネットワークが単一の経路に過剰適応し、他の可能性を司るニューロン群が完全に排除された「モノカルチャー」状態を示している。
 
-\begin{figure}[tb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.85\linewidth]{fig1}
     \caption{Phase 1/2における重みの可視化。特定の経路への過剰な専門化が見られる。}
@@ -145,7 +148,7 @@ WT v2 & $\alpha$ (Diffusion Strength) & 10.0 \\
 
 しかし、構造的な死（Dead Neurons）を完全にゼロにしたにもかかわらず、機能的パフォーマンス（正答率）は伸び悩みを見せた。WT v1は構造的復旧を達成した一方で、機能的再統合には失敗したのである。
 
-\begin{figure}[tb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.85\linewidth]{fig2}
     \vspace{0.3cm}
@@ -159,16 +162,17 @@ WT v2 & $\alpha$ (Diffusion Strength) & 10.0 \\
 WT v1を用いた場合、初期タスクの学習で深く形成された「WTAアトラクター盆地」の引力により、全てのニューロンを均等に強制復活させてもネットワーク内に過剰なノイズが発生し、機能的パフォーマンスは伸び悩んだ。
 
 そこで提案するWT v2では、再帰結合の負の重みを通じた「ネガティブ拡散」を許容し、局所的な抑制波及を取り入れた。その結果、図2(b)の赤線が示すように、あえて一部のニューロン（H1層において10〜15個程度）を死なせたまま「スパース性」を維持することが可能となった。
-特筆すべきは、機能的パフォーマンスの統計的比較結果である。表3に示す通り、複数シード（N=5）における全エピソード平均正答率および最終100エピソードの平均正答率において、WT v1とWT v2の間に有意差は認められなかった（$p > 0.05$）。
+特筆すべきは、機能的パフォーマンスの統計的比較結果である。表\ref{tab:performance}に示す通り、対照群（Baseline）は正答率が壊滅的に低下しているのに対し、WT機構を導入したモデルは有意に高いパフォーマンスを維持している。また、複数シード（N=5）における全エピソード平均および最終100エピソード平均において、WT v1とWT v2の間には有意差が認められなかった（$p > 0.05$）。
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
-\caption{WT v1 と WT v2 のパフォーマンス比較（N=5, Mean $\pm$ SD）}
-\begin{tabular}{lccc}
+\caption{Baseline、WT v1、WT v2 のパフォーマンス比較（N=5, Mean $\pm$ SD）}
+\label{tab:performance}
+\begin{tabular}{lcccc}
 \toprule
-評価指標 & WT v1 & WT v2 & t検定 ($p$値) \\ \midrule
-全エピソード平均正答率 & 17.05\% $\pm$ 1.83\% & 16.27\% $\pm$ 1.60\% & $p = 0.54$ \\ 
-最終100エピソード平均 & 15.60\% $\pm$ 1.50\% & 17.00\% $\pm$ 2.53\% & $p = 0.37$ \\ \bottomrule
+評価指標 & Baseline (No WT) & WT v1 & WT v2 & WT間のt検定 ($p$値) \\ \midrule
+全エピソード平均正答率 & 7.15\% $\pm$ 2.72\% & 17.05\% $\pm$ 1.83\% & 16.27\% $\pm$ 1.60\% & $p = 0.54$ \\ 
+最終100エピソード平均 & 3.60\% $\pm$ 6.22\% & 15.60\% $\pm$ 1.50\% & 17.00\% $\pm$ 2.53\% & $p = 0.37$ \\ \bottomrule
 \end{tabular}
 \end{table}
 
@@ -177,6 +181,8 @@ WT v1を用いた場合、初期タスクの学習で深く形成された「WTA
 \section{Discussion: 構造回復と機能の解離が示すメタ可塑性}
 本研究で見出された「構造的復旧と機能的再統合の解離」というパラドックスは、ニューロンリソースの完全な復旧が必ずしも最適な学習状態ではないことを示している。
 生涯学習（Lifelong Learning）において、過去のアトラクターからの呪縛を解き放つためには、全員を復活させるのではなく、ネガティブ拡散によってあえて活動を制限し、新しいネットワーク構造に「適度な余白（スパース性）」を残すことが、極めて重要な「メタ可塑性」のメカニズムである。
+
+なお、本実験で提案したWT v2は、「ネガティブ拡散（$\alpha=10.0$）」と「入力電流スケーリング（$\gamma=5.0$）」という2つの仕組みを同時に導入している。スパース性の維持と機能的等価性が、抑制的波及によるものなのか、電流スケーリングによる直接的なタスク文脈の強調によるものなのかを厳密に切り分けるためには、今後の研究におけるアブレーション実験（要因分離）が必要である。しかしながら、これらが複合して生体のメタ可塑性に近い効率的なリソース管理を実現していることは、本実験の結果からも明らかである。
 
 \section{Conclusion}
 本研究では、WTA競争を伴うSNNの無活動ニューロン問題に対し、ネガティブ拡散を含む局所再帰的な電位拡散モデル（WT v2）を提案し、6-Arm Star Maze環境~\cite{tolman1946spatial,olton1976spatial}においてその有効性を実証した。「死ニューロンをすべて復活させる」のではなく、「ネガティブ拡散によって適度なスパース性を保ちながら一部を復旧させる」ことが、生涯学習~\cite{parisi2019continual}におけるアトラクターの緩和制御に不可欠であるという新しい計算論的知見を示した。
