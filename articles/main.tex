@@ -20,7 +20,7 @@
 \rhead{ \textit{ }}
 \fancyhead[LO]{Structural Recovery and Functional Reintegration in Recurrent SNNs}
 
-\title{再帰的結合を介した電位拡散によるWTA型Spiking Neural Networkの構造的ニューロン復旧とネガティブ拡散を用いたスパース性の維持}
+\title{再帰的結合を介した電位拡散によるWTA型Spiking Neural Networkの構造的ニューロン復旧とスパース性の維持}
 
 \author{
   Fumiaki INOUE \\
@@ -108,7 +108,7 @@ WT v2 (提案モデル) & $\alpha$ (Diffusion Strength) & 10.0 \\
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.7\linewidth]{fig1}
+    \includegraphics[width=0.9\linewidth]{fig1}
     \caption{Phase 1/2における重みの可視化。特定の経路への過剰な専門化が見られる。}
     \label{fig:fig1}
 \end{figure}
@@ -121,9 +121,11 @@ WT v2 (提案モデル) & $\alpha$ (Diffusion Strength) & 10.0 \\
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.45\linewidth]{fig2}
-    \includegraphics[width=0.45\linewidth]{fig6}
-    \caption{左(Fig 2): Baseline(黒)における資源的枯渇とWT v1(青)による構造的完全復旧。右(Fig 6): WT v1(青)とWT v2(赤)によるスパース性維持と正答率の比較。}
+    \includegraphics[width=0.8\linewidth]{fig2}
+    \vspace{0.5cm}
+
+    \includegraphics[width=0.8\linewidth]{fig6}
+    \caption{上(Fig 2): Baseline(黒)における資源的枯渇とWT v1(青)による構造的完全復旧。下(Fig 6): WT v1(青)とWT v2(赤)によるスパース性維持と正答率の比較。}
     \label{fig:comparison_structural}
 \end{figure}
 
