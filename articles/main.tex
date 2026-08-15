@@ -137,7 +137,7 @@ WT v2 & $\alpha$ (Diffusion Strength) & 10.0 \\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{fig1}
+    \includegraphics[width=0.7\linewidth]{fig1}
     \caption{Phase 1/2における重みの可視化。特定の経路への過剰な専門化が見られる。}
     \label{fig:fig1}
 \end{figure}
@@ -150,10 +150,10 @@ WT v2 & $\alpha$ (Diffusion Strength) & 10.0 \\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{fig2}
+    \includegraphics[width=0.7\linewidth]{fig2}
     \vspace{0.3cm}
 
-    \includegraphics[width=0.85\linewidth]{fig6}
+    \includegraphics[width=0.7\linewidth]{fig6}
     \caption{上(a): Baseline(黒)における資源的枯渇とWT v1(青)による構造的完全復旧。下(b): WT v1(青)とWT v2(赤)によるスパース性維持と正答率の比較。}
     \label{fig:comparison_structural}
 \end{figure}
@@ -162,7 +162,7 @@ WT v2 & $\alpha$ (Diffusion Strength) & 10.0 \\
 WT v1を用いた場合、初期タスクの学習で深く形成された「WTAアトラクター盆地」の引力により、全てのニューロンを均等に強制復活させてもネットワーク内に過剰なノイズが発生し、機能的パフォーマンスは伸び悩んだ。
 
 そこで提案するWT v2では、再帰結合の負の重みを通じた「ネガティブ拡散」を許容し、局所的な抑制波及を取り入れた。その結果、図2(b)の赤線が示すように、あえて一部のニューロン（H1層において10〜15個程度）を死なせたまま「スパース性」を維持することが可能となった。
-特筆すべきは、機能的パフォーマンスの統計的比較結果である。表\ref{tab:performance}に示す通り、対照群（Baseline）は正答率が壊滅的に低下しているのに対し、WT機構を導入したモデルは有意に高いパフォーマンスを維持している。また、複数シード（N=5）における全エピソード平均および最終100エピソード平均において、WT v1とWT v2の間には有意差が認められなかった（$p > 0.05$）。
+特筆すべきは、機能的パフォーマンスの統計的比較結果である。表\ref{tab:performance}に示す通り、対照群（Baseline）は正答率が壊滅的に低下しているのに対し、WT機構を導入したモデル（WT v2）は全エピソード平均（$p < 0.001$）および最終100エピソード平均（$p < 0.01$）のいずれにおいてもBaselineとの比較で有意に高いパフォーマンスを維持している。また、複数シード（N=5）において、WT v1とWT v2の間には有意差が認められなかった（$p > 0.05$）。
 
 \begin{table}[htbp]
 \centering
