@@ -135,7 +135,7 @@ WT v2 & $\alpha$ (Diffusion Strength) & 10.0 \\
 \subsection{Phase 1-2: モノカルチャーの形成}
 学習の初期段階（Phase 1/2）において、エージェントに対して全6方向のゴールのうち少数の特定のゴール（例えばゴール1および2）に到達した場合のみに報酬を与え、特定経路に集中的に学習させるプロトコルを採用した。これにより、意図的に「ニューロンリソースの無活動化（特定の役割を持たないニューロンの死）」を作り出した。図\ref{fig:fig1}に示す各ゴール条件における各ニューロンの発火率ヒートマップは、ネットワークが単一の経路に過剰適応し、他の可能性を司るニューロン群が完全に排除された「モノカルチャー」状態を示している。
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.7\linewidth]{fig1}
     \caption{Phase 1/2における発火率の可視化。特定の経路への過剰な専門化が見られる。}
@@ -148,7 +148,7 @@ Phase 3において、報酬が配置されるゴール条件が全6方向に拡
 
 しかし、構造的な死（Dead Neurons）を完全にゼロにしたにもかかわらず、機能的パフォーマンス（正答率）は伸び悩みを見せた。WT v1は構造的復旧を達成した一方で、機能的再統合には失敗したのである。
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.7\linewidth]{fig2}
     \vspace{0.3cm}
