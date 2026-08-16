@@ -60,6 +60,8 @@ def main():
         plot_mean_std(axes2[0], ep_old, dead_old, "blue", "WT v1 (alpha=50, no-neg, no-homeo)")
         plot_mean_std(axes2[1], ep_old, acc_old, "blue", "WT v1 (alpha=50, no-neg, no-homeo)")
         
+    axes2[0].set_ylim(bottom=0)
+    axes2[1].set_ylim(bottom=0)
     axes2[0].set_title("Dead Neurons (H1)")
     axes2[0].set_xlabel("Episode"); axes2[0].set_ylabel("Count")
     axes2[0].legend(); axes2[0].grid(True)
@@ -84,6 +86,8 @@ def main():
         plot_mean_std(axes6[0], ep_new, dead_new, "red", "WT v2 (alpha=10, neg, homeo)")
         plot_mean_std(axes6[1], ep_new, acc_new, "red", "WT v2 (alpha=10, neg, homeo)")
         
+    axes6[0].set_ylim(bottom=0)
+    axes6[1].set_ylim(bottom=0)
     axes6[0].set_title("Dead Neurons (H1) - Sparsity")
     axes6[0].set_xlabel("Episode"); axes6[0].set_ylabel("Count")
     axes6[0].legend(); axes6[0].grid(True)
