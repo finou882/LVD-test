@@ -1,23 +1,26 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19969376.svg)](https://doi.org/10.5281/zenodo.19969376)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/finou882/wine-tower/blob/main/demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/finou882/LVD-test/blob/main/demo.ipynb)
 
 > **日本語版 README は [README_ja.md](README_ja.md) を参照してください。**
 
 ---
 
-# Wine-Tower — Solving Dead-Neuron Problem in Spiking Neural Networks
+# Leaky Volume Diffusion — Solving Dead-Neuron Problem in Spiking Neural Networks
 
-This repository implements the **Wine-Tower model**,
+> [!NOTE]
+> During early development, this method was codenamed "Wine-Tower". It has been formally renamed to "**Leaky Volume Diffusion (LVD)**" for the publication. The repository name will likely be updated in the near future to reflect this change.
+
+This repository implements the **Leaky Volume Diffusion model**,
 a biologically-inspired mechanism that revives dead (silent) neurons in WTA-LIF Spiking Neural Networks
 via voltage diffusion through recurrent connections.
 
 The agent is trained on a **Multiple T-Maze** lifelong-learning benchmark (5 goals, 5 junctions)
 using R-STDP with a 3-layer deep WTA-LIF architecture.
 
-Paper: *Wine-Tower: Solving the Dead-Neuron Problem in SNNs via Biological Voltage Diffusion* — Fumiaki INOUE, 2026.
+Paper: *Leaky Volume Diffusion: Solving the Dead-Neuron Problem in SNNs via Biological Voltage Diffusion* — Fumiaki INOUE, 2026.
 
 ### Key Findings
-- **Structural Recovery**: Wine-Tower revives nearly all dead neurons by diffusing membrane potential through recurrent connections.
+- **Structural Recovery**: Leaky Volume Diffusion revives nearly all dead neurons by diffusing membrane potential through recurrent connections.
 - **WTA Attractor Wall**: Despite structural recovery, the accuracy improvement is blocked by attractor basins formed during early specialization — a phenomenon interpreted as a *computational critical period*.
 - **Structure–Function Gap**: Physical revival of neurons does not guarantee functional reintegration; the revived neurons are captured by the dominant WTA attractor and lose task-discriminative firing diversity.
 
@@ -46,14 +49,14 @@ pip install -r requirements.txt
 ## Quick Start
 
 ```bash
-# Default training (Phase 1→3, seed 42, Wine-Tower ON)
+# Default training (Phase 1→3, seed 42, Leaky Volume Diffusion ON)
 uv run python main.py
 
 # Save model and training history
 uv run python main.py --save-model models/my_model.npz --save-history results/my_hist.npz
 
-# Control: disable Wine-Tower and STDP boost
-uv run python main.py --no-wine-tower --no-boost
+# Control: disable Leaky Volume Diffusion and STDP boost
+uv run python main.py --no-lvd --no-boost
 ```
 
 ---
@@ -91,7 +94,7 @@ uv run python main.py --no-wine-tower --no-boost
 | `--verbose-every` | 50 | Print stats every N episodes |
 | `--start-phase` | None | Skip curriculum to phase 1/2/3 at start |
 | `--max-phase` | 3 | Stop training when curriculum advances past this phase |
-| `--no-wine-tower` | — | Disable Wine-Tower recovery (ablation) |
+| `--no-lvd` | — | Disable Leaky Volume Diffusion recovery (ablation) |
 | `--no-boost` | — | Disable STDP reward amplification ×20/×2 (ablation) |
 
 ### I/O
@@ -113,7 +116,7 @@ uv run python main.py --max-phase 2 --save-model models/phase2.npz
 uv run python main.py --load-model models/phase2.npz --weight-plot articles/images/fig1.png
 ```
 
-### Figure 2 — Wine-Tower vs Control (3 seeds, mean ± std)
+### Figure 2 — Leaky Volume Diffusion vs Control (3 seeds, mean ± std)
 ```bash
 # Step 1: run ablation training (Phase1/2 checkpoint + Phase3 fork x2 x3seeds)
 .\run_boost_ablation.ps1
@@ -123,17 +126,17 @@ uv run python compare_boost_ablation.py
 # output: articles/images/fig6.png
 ```
 
-### Figure 3 — Spike raster plot (Before / After Wine-Tower)
+### Figure 3 — Spike raster plot (Before / After Leaky Volume Diffusion)
 ```bash
 # Step 1: train Phase 1/2 checkpoint (shared)
 uv run python main.py --episodes 1500 --max-phase 2 --seed 42 --save-model models/phase2_raster.npz
 
-# Step 2a: Phase 3 WITHOUT Wine-Tower  →  "Before" model
+# Step 2a: Phase 3 WITHOUT Leaky Volume Diffusion  →  "Before" model
 uv run python main.py --episodes 900 --seed 42 \
     --load-model models/phase2_raster.npz --start-phase 3 \
-    --no-wine-tower --save-model models/no_wt_deep3_model.npz
+    --no-lvd --save-model models/no_lvd_deep3_model.npz
 
-# Step 2b: Phase 3 WITH Wine-Tower  →  "After" model
+# Step 2b: Phase 3 WITH Leaky Volume Diffusion  →  "After" model
 uv run python main.py --episodes 900 --seed 42 \
     --load-model models/phase2_raster.npz --start-phase 3 \
     --save-model models/wt_deep3_model.npz
@@ -153,7 +156,7 @@ uv run python generate_attractor_heatmap.py \
 
 ### (Optional) Multi-seed comparison with existing results
 ```bash
-uv run python compare_winetower.py --multi-seed --out comparison_multiseed.png
+uv run python compare_lvd.py --multi-seed --out comparison_multiseed.png
 ```
 
 ---
@@ -163,7 +166,7 @@ uv run python compare_winetower.py --multi-seed --out comparison_multiseed.png
 ```
 main.py                        # entry point
 src/snn_agent/
-    agent.py                   # 3-layer WTA-LIF agent, Wine-Tower replay
+    agent.py                   # 3-layer WTA-LIF agent, Leaky Volume Diffusion replay
     trainer.py                 # training loop, curriculum, phase control
     lif.py                     # LIF neuron + dead-neuron detection
     wta.py                     # k-WTA inhibition layer
@@ -172,8 +175,8 @@ src/snn_agent/
     curriculum.py              # 3-phase goal curriculum
 generate_raster_comparison.py  # fig3: before/after spike raster
 generate_attractor_heatmap.py  # fig4: goal-conditioned firing rate heatmap
-compare_boost_ablation.py      # fig2: WT+boost vs control (3 seeds)
-compare_winetower.py           # multi-seed WT vs no-WT comparison
+compare_boost_ablation.py      # fig2: LVD+boost vs control (3 seeds)
+compare_lvd.py           # multi-seed LVD vs no-LVD comparison
 run_boost_ablation.ps1         # PowerShell: run ablation experiment
 models/                        # pre-trained .npz model weights
 results/                       # saved training histories

@@ -48,9 +48,9 @@ class LifelongTrainer:
         verbose_every: int = 50,
         epsilon_start: float = 0.3,
         epsilon_end: float = 0.05,
-        wine_tower: bool = True,
-        wine_strength: float = 50.0,
-        homeo_gain: float = 1.0,
+        lvd: bool = True,
+        alpha: float = 50.0,
+        gamma: float = 1.0,
         stdp_boost: bool = True,
         neg_diff: bool = True,
     ):
@@ -66,10 +66,10 @@ class LifelongTrainer:
         self._replay_size = replay_size
         self.epsilon_start = epsilon_start
         self.epsilon_end = epsilon_end
-        self._wine_tower_enabled = wine_tower
-        self._wine_tower_interval = 20   # run Wine-Tower pass every N episodes
-        self._wine_strength = wine_strength
-        self._homeo_gain = homeo_gain
+        self._lvd_enabled = lvd
+        self._lvd_interval = 20   # run Leaky Volume Diffusion pass every N episodes
+        self._wine_strength = alpha
+        self._homeo_gain = gamma
         self._stdp_boost = stdp_boost
         self._neg_diff = neg_diff
 
@@ -102,7 +102,7 @@ class LifelongTrainer:
         Run one episode.
 
         Returns (total_reward, trajectory) where trajectory is the list of
-        (obs, reward) pairs from the forward pass (used by Wine-Tower replay).
+        (obs, reward) pairs from the forward pass (used by Leaky Volume Diffusion replay).
 
         Reward propagation strategy:
           * Run a forward pass collecting (obs, reward) pairs.
@@ -183,9 +183,9 @@ class LifelongTrainer:
         sorted_buf = sorted(self._replay_buf, key=lambda x: x[3], reverse=True)
         return [t for _, _, t, _ in sorted_buf[:k]]
 
-    def _wine_tower_pass(self, n_passes: int = 2) -> None:
+    def _lvd_pass(self, n_passes: int = 2) -> None:
         """
-        Wine-Tower offline replay: spike-triggered current injection into dead
+        Leaky Volume Diffusion offline replay: spike-triggered current injection into dead
         neurons to forcefully un-stick them from WTA depression.
         """
         top_trajs = self._sample_top_trajectories()
@@ -193,10 +193,10 @@ class LifelongTrainer:
             return
 
         # Do a few rapid offline passes
-        self.agent.wine_tower_replay(
+        self.agent.lvd_replay(
             top_trajs, 
-            wine_strength=self._wine_strength,
-            homeo_gain=self._homeo_gain,
+            alpha=self._wine_strength,
+            gamma=self._homeo_gain,
             n_passes=n_passes,
             neg_diff=self._neg_diff
         )
@@ -246,7 +246,7 @@ class LifelongTrainer:
             # Phase-aware homeostatic kick:
             # Phase 1/2 – gently depolarise dead neurons so STDP has time to
             #   learn before WTA causes irreversible collapse.
-            # Phase 3  – mild kick to let Wine-Tower have a chance to revive
+            # Phase 3  – mild kick to let Leaky Volume Diffusion have a chance to revive
             #   dead neurons via neighbour-voltage leaking + STDP.
             if phase <= 2:
                 for h in self.agent.hiddens:
@@ -260,7 +260,7 @@ class LifelongTrainer:
             reward, traj = self._run_episode(cue_goals, target=target, learn=True, epsilon=eps)
             success = reward >= 1.0   # only terminal +1 counts as success
 
-            # Store in replay buffer (FIFO) – includes trajectory and reward for Wine-Tower
+            # Store in replay buffer (FIFO) – includes trajectory and reward for Leaky Volume Diffusion
             self._replay_buf.append((list(cue_goals), target, traj, reward))
             if len(self._replay_buf) > self._replay_size:
                 self._replay_buf.pop(0)
@@ -279,10 +279,10 @@ class LifelongTrainer:
             if (ep + 1) % self.replay_interval == 0:
                 self._replay_pass()
 
-            # Wine-Tower recovery: Phase 3 only, every 5 episodes
+            # Leaky Volume Diffusion recovery: Phase 3 only, every 5 episodes
             # Phase 1/2 uses homeostatic_kick instead (simpler, faster)
-            if self._wine_tower_enabled and phase == 3 and (ep + 1) % 5 == 0:
-                self._wine_tower_pass()
+            if self._lvd_enabled and phase == 3 and (ep + 1) % 5 == 0:
+                self._lvd_pass()
 
             # Logging
             if (ep + 1) % self.verbose_every == 0:

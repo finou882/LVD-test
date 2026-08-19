@@ -1,23 +1,26 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19969376.svg)](https://doi.org/10.5281/zenodo.19969376)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/finou882/wine-tower/blob/main/demo.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/finou882/LVD-test/blob/main/demo.ipynb)
 
 > **English README is [here](README.md).**
 
 ---
 
-# Wine-Tower — SNNのDead-Neuron問題の解決
+# Leaky Volume Diffusion — SNNのDead-Neuron問題の解決
 
-本リポジトリは**Wine-Towerモデル**を実装します。
+> [!NOTE]
+> 本手法は開発初期において「Wine-Tower」というコードネームで呼ばれていましたが、論文執筆にあたり正式名称「**Leaky Volume Diffusion (LVD)**」に変更されました。これに伴い、後日リポジトリ名も変更される予定です。
+
+本リポジトリは**Leaky Volume Diffusionモデル**を実装します。
 WTA-LIF スパイキングニューラルネットワークにおいて死滅（沈黙）したニューロンを、
 再帰結合を通じた電位拡散で蘇生させる、生物学的に着想を得た手法です。
 
 エージェントは3層深層WTA-LIFアーキテクチャとR-STDPを用いて、
 **多段T字迷路（5ゴール・5分岐）** 生涯学習ベンチマークで訓練されます。
 
-論文: *生物学的アプローチに基づいたLIFネットワークの電位拡散モデル (Wine-Tower) によるSpiking Neural NetworkのDead-Neuron問題の解決* — 井上文朗, 2026.
+論文: *生物学的アプローチに基づいたLIFネットワークの電位拡散モデル (Leaky Volume Diffusion) によるSpiking Neural NetworkのDead-Neuron問題の解決* — 井上文朗, 2026.
 
 ### 主要発見
-- **構造回復**: Wine-Towerは再帰結合を介した膜電位拡散により死滅ニューロンのほぼ全数を蘇生させる。
+- **構造回復**: Leaky Volume Diffusionは再帰結合を介した膜電位拡散により死滅ニューロンのほぼ全数を蘇生させる。
 - **WTAアトラクターの壁**: 構造回復にもかかわらず、初期専門化で形成されたアトラクター盆が正答率回復を阻む「計算論的臨界期」として機能する。
 - **構造・機能乖離**: ニューロンの物理的蘇生は機能的再統合を保証しない。蘇生ニューロンはWTAアトラクターの支配的モードに取り込まれ、タスク弁別的な発火の多様性が失われる「情報の均一化」が生じる。
 
@@ -46,14 +49,14 @@ pip install -r requirements.txt
 ## クイックスタート
 
 ```bash
-# デフォルト学習 (Phase 1→3, seed 42, Wine-Tower ON)
+# デフォルト学習 (Phase 1→3, seed 42, Leaky Volume Diffusion ON)
 uv run python main.py
 
 # モデルと学習履歴を保存
 uv run python main.py --save-model models/my_model.npz --save-history results/my_hist.npz
 
-# コントロール条件: Wine-TowerとSTDPブーストを両方無効化
-uv run python main.py --no-wine-tower --no-boost
+# コントロール条件: Leaky Volume DiffusionとSTDPブーストを両方無効化
+uv run python main.py --no-lvd --no-boost
 ```
 
 ---
@@ -91,7 +94,7 @@ uv run python main.py --no-wine-tower --no-boost
 | `--verbose-every` | 50 | Nエピソードごとに統計を表示 |
 | `--start-phase` | None | 学習開始時にカリキュラムをPhase 1/2/3にスキップ |
 | `--max-phase` | 3 | カリキュラムがこのPhaseを超えたら学習を停止 |
-| `--no-wine-tower` | — | Wine-Tower回復を無効化（アブレーション用） |
+| `--no-lvd` | — | Leaky Volume Diffusion回復を無効化（アブレーション用） |
 | `--no-boost` | — | STDPリワード増幅（×20/×2）を無効化（アブレーション用） |
 
 ### 入出力
@@ -113,7 +116,7 @@ uv run python main.py --max-phase 2 --save-model models/phase2.npz
 uv run python main.py --load-model models/phase2.npz --weight-plot articles/images/fig1.png
 ```
 
-### Figure 2 — Wine-Tower vs コントロール（3シード、mean±std）
+### Figure 2 — Leaky Volume Diffusion vs コントロール（3シード、mean±std）
 ```bash
 # Step 1: アブレーション学習を実行
 #   (Phase1/2チェックポイント + Phase3を2条件×3シードに分岐)
@@ -124,17 +127,17 @@ uv run python compare_boost_ablation.py
 # 出力: articles/images/fig6.png
 ```
 
-### Figure 3 — スパイクラスタープロット（Wine-Tower適用前後）
+### Figure 3 — スパイクラスタープロット（Leaky Volume Diffusion適用前後）
 ```bash
 # Step 1: Phase 1/2 チェックポイントを学習（共通）
 uv run python main.py --episodes 1500 --max-phase 2 --seed 42 --save-model models/phase2_raster.npz
 
-# Step 2a: Phase 3（Wine-Tower無し）→ "Before" モデル
+# Step 2a: Phase 3（Leaky Volume Diffusion無し）→ "Before" モデル
 uv run python main.py --episodes 900 --seed 42 `
     --load-model models/phase2_raster.npz --start-phase 3 `
-    --no-wine-tower --save-model models/no_wt_deep3_model.npz
+    --no-lvd --save-model models/no_lvd_deep3_model.npz
 
-# Step 2b: Phase 3（Wine-Tower有り）→ "After" モデル
+# Step 2b: Phase 3（Leaky Volume Diffusion有り）→ "After" モデル
 uv run python main.py --episodes 900 --seed 42 `
     --load-model models/phase2_raster.npz --start-phase 3 `
     --save-model models/wt_deep3_model.npz
@@ -159,7 +162,7 @@ uv run python generate_attractor_heatmap.py \
 ```
 main.py                        # エントリーポイント
 src/snn_agent/
-    agent.py                   # 3層WTA-LIFエージェント、Wine-Towerリプレイ
+    agent.py                   # 3層WTA-LIFエージェント、Leaky Volume Diffusionリプレイ
     trainer.py                 # 学習ループ、カリキュラム、フェーズ制御
     lif.py                     # LIFニューロン + 死滅ニューロン検出
     wta.py                     # k-WTA側抑制層
@@ -168,8 +171,8 @@ src/snn_agent/
     curriculum.py              # 3フェーズ・ゴールカリキュラム
 generate_raster_comparison.py  # fig3: 適用前後のスパイクラスター
 generate_attractor_heatmap.py  # fig4: ゴール条件別発火率ヒートマップ
-compare_boost_ablation.py      # fig2: WT+boost vs コントロール（3シード）
-compare_winetower.py           # マルチシードWT vs No-WT比較
+compare_boost_ablation.py      # fig2: LVD+boost vs コントロール（3シード）
+compare_lvd.py           # マルチシードWT vs No-WT比較
 run_boost_ablation.ps1         # PowerShell: アブレーション実験実行
 models/                        # 学習済み .npz モデル重み
 results/                       # 保存済み学習履歴

@@ -1,0 +1,39 @@
+============================================================
+  Multiple-TMaze  -  LIF+STDP SNN  -  Lifelong Learning
+============================================================
+  Mode         : CURRICULUM  (3-hint Å® all-10 recall)
+  Hint goals   : 3
+  Max gap      : 50 episodes
+  Episodes     : 1000
+  Hidden size  : 64  WTA-k=4
+  Recurrent    : True
+  LR           : 0.005
+  Encode steps : 10
+  Max steps/ep : 50
+  Seed         : 45
+============================================================
+[Ep    50/1000] acc(last50)= 12.0%  dead_h123=[  0,   0,   0]  dead_out=0  | Phase1(Target 0 ONLY, ep 50/400)
+[Ep   100/1000] acc(last50)=  9.8%  dead_h123=[ 34,  13,  10]  dead_out=0  | Phase1(Target 0 ONLY, ep 100/400)
+[Ep   150/1000] acc(last50)=  3.9%  dead_h123=[ 34,  15,   8]  dead_out=0  | Phase1(Target 0 ONLY, ep 150/400)
+[Ep   200/1000] acc(last50)=  9.8%  dead_h123=[ 34,  17,   7]  dead_out=0  | Phase1(Target 0 ONLY, ep 200/400)
+[Ep   250/1000] acc(last50)=  7.8%  dead_h123=[ 36,  19,  10]  dead_out=0  | Phase1(Target 0 ONLY, ep 250/400)
+[Ep   300/1000] acc(last50)= 45.1%  dead_h123=[ 34,  12,   6]  dead_out=0  | Phase1(Target 0 ONLY, ep 300/400)
+[Ep   350/1000] acc(last50)= 58.8%  dead_h123=[ 33,   5,   5]  dead_out=0  | Phase1(Target 0 ONLY, ep 350/400)
+[Ep   400/1000] acc(last50)= 74.5%  dead_h123=[ 34,  10,  10]  dead_out=0  | Phase2(Expanding Pool, ep 400/700)
+[Ep   450/1000] acc(last50)= 56.9%  dead_h123=[ 23,   8,  14]  dead_out=0  | Phase2(Expanding Pool, ep 450/700)
+[Ep   500/1000] acc(last50)= 43.1%  dead_h123=[ 16,   6,  12]  dead_out=0  | Phase2(Expanding Pool, ep 500/700)
+[Ep   550/1000] acc(last50)= 35.3%  dead_h123=[ 15,   6,  11]  dead_out=0  | Phase2(Expanding Pool, ep 550/700)
+[Ep   600/1000] acc(last50)= 31.4%  dead_h123=[ 13,   6,  12]  dead_out=0  | Phase2(Expanding Pool, ep 600/700)
+[Ep   650/1000] acc(last50)= 29.4%  dead_h123=[ 12,   6,  14]  dead_out=0  | Phase2(Expanding Pool, ep 650/700)
+[Ep   700/1000] acc(last50)= 23.5%  dead_h123=[ 15,   4,  15]  dead_out=0  | Phase3(All 6 goals, ep 700)
+[Ep   750/1000] acc(last50)= 17.6%  dead_h123=[ 13,   4,  14]  dead_out=0  | Phase3(All 6 goals, ep 750)
+[Ep   800/1000] acc(last50)= 19.6%  dead_h123=[ 13,   4,  12]  dead_out=0  | Phase3(All 6 goals, ep 800)
+[Ep   850/1000] acc(last50)= 13.7%  dead_h123=[ 13,   5,  13]  dead_out=0  | Phase3(All 6 goals, ep 850)
+[Ep   900/1000] acc(last50)= 15.7%  dead_h123=[ 13,   7,  13]  dead_out=0  | Phase3(All 6 goals, ep 900)
+[Ep   950/1000] acc(last50)= 27.5%  dead_h123=[ 13,   6,  13]  dead_out=0  | Phase3(All 6 goals, ep 950)
+[Ep  1000/1000] acc(last50)= 19.6%  dead_h123=[ 14,   6,  14]  dead_out=0  | Phase3(All 6 goals, ep 1000)
+
+Final accuracy (last 100 episodes): 23.0%
+Dead hidden neurons at end: H1=14/64, H2=6/64, H3=14/64
+Dead output neurons at end: 0/6
+History saved to: results/homeo_base_s45.npz

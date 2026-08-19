@@ -25,8 +25,8 @@ class STDPSynapse:
     n_pre      : int    number of pre-synaptic neurons
     n_post     : int    number of post-synaptic neurons
     lr         : float  base learning rate η
-    A_plus     : float  LTP amplitude
-    A_minus    : float  LTD amplitude
+    a_plus     : float  LTP amplitude
+    a_minus    : float  LTD amplitude
     tau_plus   : float  pre-trace decay constant (ms)
     tau_minus  : float  post-trace decay constant (ms)
     dt         : float  timestep (ms)
@@ -40,8 +40,8 @@ class STDPSynapse:
         n_pre: int,
         n_post: int,
         lr: float = 0.01,
-        A_plus: float = 0.01,
-        A_minus: float = 0.012,
+        a_plus: float = 0.01,
+        a_minus: float = 0.012,
         tau_plus: float = 20.0,
         tau_minus: float = 20.0,
         dt: float = 1.0,
@@ -53,8 +53,8 @@ class STDPSynapse:
         self.n_pre = n_pre
         self.n_post = n_post
         self.lr = lr
-        self.A_plus = A_plus
-        self.A_minus = A_minus
+        self.a_plus = a_plus
+        self.a_minus = a_minus
         self.dt = dt
         self.w_min = w_min
         self.w_max = w_max
@@ -114,7 +114,7 @@ class STDPSynapse:
         # LTD: pre-spike × post-trace
         dW_ltd = np.outer(pre_spikes.astype(np.float64), self.x_post)
 
-        dW = self.lr * reward * (self.A_plus * dW_ltp - self.A_minus * dW_ltd)
+        dW = self.lr * reward * (self.a_plus * dW_ltp - self.a_minus * dW_ltd)
         self.W += dW
         np.clip(self.W, self.w_min, self.w_max, out=self.W)
 

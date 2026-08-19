@@ -1,8 +1,8 @@
 """
-Before / After Wine-Tower raster plot comparison.
+Before / After Leaky Volume Diffusion raster plot comparison.
 
-(A) Before: models/no_wt_deep3_model.npz  -- trained WITHOUT Wine-Tower (Phase3)
-(B) After:  models/wt_deep3_model.npz     -- trained WITH    Wine-Tower (Phase3)
+(A) Before: models/no_lvd_deep3_model.npz  -- trained WITHOUT Leaky Volume Diffusion (Phase3)
+(B) After:  models/wt_deep3_model.npz     -- trained WITH    Leaky Volume Diffusion (Phase3)
 
 Output: articles/images/fig_raster.png
 """
@@ -97,18 +97,18 @@ def plot_raster_column(axes, history, n_encode, n_env_steps, title, dead_masks=N
 def main(out="articles/images/fig_raster.png"):
     env = MultipleTMaze(n_goals=5)
 
-    # ── (A) Before: no Wine-Tower model ──────────────────────────────
+    # ── (A) Before: no Leaky Volume Diffusion model ──────────────────────────────
     agent_nowt = SNNAgent(obs_dim=env.obs_dim, act_dim=env.act_dim,
                           n_hidden=64, seed=42)
-    agent_nowt.load("models/no_wt_deep3_model.npz")
+    agent_nowt.load("models/no_lvd_deep3_model.npz")
     dead_nowt = [h.dead_mask.copy() for h in agent_nowt.hiddens]
     hist_nowt, n_enc = collect_spikes(agent_nowt, env)
 
-    # ── (B) After: Wine-Tower model ───────────────────────────────────
+    # ── (B) After: Leaky Volume Diffusion model ───────────────────────────────────
     agent_wt = SNNAgent(obs_dim=env.obs_dim, act_dim=env.act_dim,
                         n_hidden=64, seed=42)
     agent_wt.load("models/wt_deep3_model.npz")
-    dead_wt = [h.dead_mask.copy() for h in agent_wt.hiddens]
+    dead_lvd = [h.dead_mask.copy() for h in agent_wt.hiddens]
     hist_wt, _ = collect_spikes(agent_wt, env)
 
     n_env_steps = 8
@@ -116,7 +116,7 @@ def main(out="articles/images/fig_raster.png"):
     # ── プロット ─────────────────────────────────────────────────────
     fig = plt.figure(figsize=(14, 9))
     fig.suptitle(
-        "Spike Raster Plot: Before vs. After Wine-Tower\n"
+        "Spike Raster Plot: Before vs. After Leaky Volume Diffusion\n"
         "(Orange ticks = neurons active at recording time that were previously dead)",
         fontsize=11, y=0.98
     )
@@ -133,17 +133,17 @@ def main(out="articles/images/fig_raster.png"):
         ax.set_xlim(0, total_steps)
 
     nowt_dead_total = sum(dm.sum() for dm in dead_nowt)
-    wt_dead_total   = sum(dm.sum() for dm in dead_wt)
+    wt_dead_total   = sum(dm.sum() for dm in dead_lvd)
 
     plot_raster_column(
         axes_nowt, hist_nowt, n_enc, n_env_steps,
-        f"(A) Before Wine-Tower  [dead hidden = {nowt_dead_total}]",
+        f"(A) Before Leaky Volume Diffusion  [dead hidden = {nowt_dead_total}]",
         dead_masks=dead_nowt,
     )
     plot_raster_column(
         axes_wt, hist_wt, n_enc, n_env_steps,
-        f"(B) After Wine-Tower  [dead hidden = {wt_dead_total}]",
-        dead_masks=dead_wt,
+        f"(B) After Leaky Volume Diffusion  [dead hidden = {wt_dead_total}]",
+        dead_masks=dead_lvd,
     )
 
     # y軸ラベルは左列のみ

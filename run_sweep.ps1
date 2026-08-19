@@ -6,12 +6,12 @@ $seed = 42
 Write-Host "=== Parameter Sweep on Seed $seed ==="
 
 foreach ($s in $strengths) {
-    Write-Host "=== Running Phase 3 WITH Wine-Tower (strength=$s, homeo_gain=5.0) ==="
-    uv run python -u main.py --seed $seed --start-phase 3 --wine-strength $s --homeo-gain 5.0 --save-history results/wt_s${s}_seed42.npz
+    Write-Host "=== Running Phase 3 WITH Leaky Volume Diffusion (strength=$s, gamma=5.0) ==="
+    uv run python -u main.py --seed $seed --start-phase 3 --alpha $s --gamma 5.0 --save-history results/lvd_s${s}_seed42.npz
 }
 
-Write-Host "=== Running Phase 3 NO Wine-Tower ==="
-uv run python -u main.py --seed $seed --start-phase 3 --no-wine-tower --save-history results/no_wt_seed42.npz
+Write-Host "=== Running Phase 3 NO Leaky Volume Diffusion ==="
+uv run python -u main.py --seed $seed --start-phase 3 --no-lvd --save-history results/no_lvd_seed42.npz
 
 Write-Host "=== All sweeps done! ==="
 uv run python -u compare_sweep.py --seed $seed

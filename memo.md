@@ -8,28 +8,28 @@
 - **新環境**: 6-Arm Star Maze (Hexable-Maze / 6方向対称メイズ)
 - **概要**: `src/snn_agent/environment.py` にて、エージェントが6つのゴールから1つを選択する対称的な環境へと移行された。深さがなく、全てのアクションが等価なコスト(1ステップ)で評価される。
 
-## 2. Wine-Tower法の機能拡張と実装状況
+## 2. Leaky Volume Diffusion法の機能拡張と実装状況
 以下の新機能が追加されている。
 - **Configurable Wine Strength (`--wine-strength`)**: TRR（電位拡散）の強度を動的に調整可能。
-- **Homeostatic Scaling (`--homeo-gain`)**: 論文ドラフトでは批判されていた「恒常性スケーリング」をあえて実装し、Wine-Tower法との組み合わせ比較が可能に（例: `--homeo-gain 5.0`）。
-- **Negative Diffusion (ネガティブ拡散)**: 正の拡散だけでなく、負の拡散（抑制的波及）もWine-Towerネットワークに取り入れられた。
+- **Homeostatic Scaling (`--homeo-gain`)**: 論文ドラフトでは批判されていた「恒常性スケーリング」をあえて実装し、Leaky Volume Diffusion法との組み合わせ比較が可能に（例: `--homeo-gain 5.0`）。
+- **Negative Diffusion (ネガティブ拡散)**: 正の拡散だけでなく、負の拡散（抑制的波及）もLeaky Volume Diffusionネットワークに取り入れられた。
   - *仕様補足*: コード上では回帰結合 `W_rec` の生の値（負の値を含む）をそのまま拡散電流に掛けているため、**暗黙的にネガティブ拡散が常に有効**になっていた。比較のため `--no-neg-diff` オプションを急遽実装し `max(0, W)` で負の波及をカットできるようにした。
 
 ## 3. 比較実験の実行結果 (2026/08/13)
 Hexable-Maze (6-Arm Star Maze) において、各設定による挙動の違いを検証した (各1200エピソード)。
 
-### ① No Wine-Tower (ベースライン)
-- **設定**: `--no-wine-tower`
+### ① No Leaky Volume Diffusion (ベースライン)
+- **設定**: `--no-lvd`
 - **最終正答率**: 1.0% (ほぼ崩壊)
 - **最終死ニューロン数**: H1=7, H2=4, H3=7
 
-### ② 旧型 Wine-Tower (論文モデル相当)
+### ② 旧型 Leaky Volume Diffusion (論文モデル相当)
 - **設定**: `--wine-strength 50.0 --homeo-gain 1.0 --no-neg-diff`
 - **最終正答率**: 13.0%
 - **最終死ニューロン数**: H1=1, H2=0, H3=0
 - **考察**: T-Maze時代と同様に**「構造的復旧（死ニューロンの復活）」は完璧に近い**が、正答率は13%にとどまり、アトラクター制約（機能的再統合の壁）が依然として存在することが確認できた。
 
-### ③ 最新複合型 Wine-Tower
+### ③ 最新複合型 Leaky Volume Diffusion
 - **設定**: `--wine-strength 10.0 --homeo-gain 5.0` (ネガティブ拡散あり)
 - **最終正答率**: 15.0%
 - **最終死ニューロン数**: H1=15, H2=2, H3=1

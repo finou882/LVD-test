@@ -1,12 +1,12 @@
 # train_ablation.ps1
-# Train WT or no-WT model using existing main.py options.
+# Train LVD or no-LVD model using existing main.py options.
 #
 # Usage:
-#   With Wine-Tower (default):
+#   With Leaky Volume Diffusion (default):
 #     .\train_ablation.ps1
 #     .\train_ablation.ps1 -WineTower
 #
-#   Without Wine-Tower (Before state for comparison):
+#   Without Leaky Volume Diffusion (Before state for comparison):
 #     .\train_ablation.ps1 -NoWineTower
 #
 #   Custom episode counts:
@@ -14,10 +14,10 @@
 #
 # Output:
 #   -WineTower   -> models/wt_deep3_ablation.npz
-#   -NoWineTower -> models/no_wt_deep3_model.npz
+#   -NoWineTower -> models/no_lvd_deep3_model.npz
 #
 # Note: main.py and trainer.py are NOT modified.
-#       Uses --no-wine-tower / --max-phase / --start-phase options.
+#       Uses --no-lvd / --max-phase / --start-phase options.
 
 param(
     [switch]$WineTower,
@@ -42,11 +42,11 @@ $phase2Model = "models/phase2_ablation_seed${Seed}.npz"
 if ($WineTower) {
     $finalModel = "models/wt_deep3_ablation.npz"
     $wtFlag     = ""
-    $label      = "WITH Wine-Tower"
+    $label      = "WITH Leaky Volume Diffusion"
 } else {
-    $finalModel = "models/no_wt_deep3_model.npz"
-    $wtFlag     = "--no-wine-tower"
-    $label      = "NO Wine-Tower"
+    $finalModel = "models/no_lvd_deep3_model.npz"
+    $wtFlag     = "--no-lvd"
+    $label      = "NO Leaky Volume Diffusion"
 }
 
 Write-Host "================================" -ForegroundColor Cyan
@@ -74,7 +74,7 @@ Write-Host "[Step 2/2] Phase 3 training $Phase3Ep episodes - $label" -Foreground
 if ($WineTower) {
     uv run python main.py --episodes $Phase3Ep --hidden $Hidden --wta-k $WtaK --lr $Lr --seed $Seed --start-phase 3 --load-model $phase2Model --save-model $finalModel
 } else {
-    uv run python main.py --episodes $Phase3Ep --hidden $Hidden --wta-k $WtaK --lr $Lr --seed $Seed --start-phase 3 --load-model $phase2Model --save-model $finalModel --no-wine-tower
+    uv run python main.py --episodes $Phase3Ep --hidden $Hidden --wta-k $WtaK --lr $Lr --seed $Seed --start-phase 3 --load-model $phase2Model --save-model $finalModel --no-lvd
 }
 
 if ($LASTEXITCODE -ne 0) {

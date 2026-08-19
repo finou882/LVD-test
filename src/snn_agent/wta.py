@@ -38,7 +38,7 @@ class WTALayer(LIFLayer):
         self.grace_counts = np.zeros(n_neurons, dtype=np.int32)
 
     # ------------------------------------------------------------------
-    def step(self, I: np.ndarray, assist_I=None) -> np.ndarray:
+    def step(self, I: np.ndarray, i_assist=None) -> np.ndarray:
         """
         Advance one timestep with WTA masking applied after spike detection.
 
@@ -47,7 +47,7 @@ class WTALayer(LIFLayer):
         non-winner neurons to drive specialisation and dead-neuron formation.
         Grace-period neurons are always allowed to spike regardless of WTA.
         """
-        spikes = super().step(I, assist_I=assist_I)
+        spikes = super().step(I, i_assist=i_assist)
 
         if spikes.any():
             n_spikes = spikes.sum()
@@ -65,7 +65,7 @@ class WTALayer(LIFLayer):
                         sorted_normal = normal_fired[np.argsort(-current_at_normal)]
                         normal_winners = sorted_normal[:self.k]
                         normal_losers  = sorted_normal[self.k:]
-                        self.V[normal_losers] = self.V_rest
+                        self.V[normal_losers] = self.v_rest
                         spikes[normal_losers] = False
                     # Grace neurons always keep their spikes (bonus winners)
 

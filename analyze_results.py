@@ -20,6 +20,6 @@ def print_summary(name, path):
         print(f"Failed to load {path}: {e}")
 
 if __name__ == "__main__":
-    print_summary("1. No Wine-Tower", "results/exp1_no_wt.npz")
-    print_summary("2. Old Wine-Tower (no neg-diff, no homeo)", "results/exp2_wt_old.npz")
-    print_summary("3. New Combined Wine-Tower (neg-diff + homeo)", "results/exp3_wt_new.npz")
+    print_summary("1. No Leaky Volume Diffusion", "results/exp1_no_lvd.npz")
+    print_summary("2. Old Leaky Volume Diffusion (no neg-diff, no homeo)", "results/exp2_lvd_old.npz")
+    print_summary("3. New Combined Leaky Volume Diffusion (neg-diff + homeo)", "results/exp3_lvd_new.npz")

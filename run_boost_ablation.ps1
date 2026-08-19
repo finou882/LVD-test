@@ -2,17 +2,17 @@
 #
 # Ablation: 4 conditions, all forking from the same Phase-1/2 checkpoint per seed.
 #
-#   ctrl       : no-WT, no-boost  (pure baseline)
-#   boost_only : no-WT, boost ON
-#   wt_only    : WT ON,  no-boost
-#   wt         : WT ON,  boost ON  (full method)
+#   ctrl       : no-LVD, no-boost  (pure baseline)
+#   boost_only : no-LVD, boost ON
+#   wt_only    : LVD ON,  no-boost
+#   wt         : LVD ON,  boost ON  (full method)
 #
 # Outputs (under results/boost_ablation/):
 #   hist_p12_s{SEED}.npz           Phase1/2 history (shared)
-#   hist_ctrl_s{SEED}.npz          Phase3 history (no-WT, no-boost)
-#   hist_boost_only_s{SEED}.npz    Phase3 history (no-WT, boost ON)
-#   hist_wt_only_s{SEED}.npz       Phase3 history (WT ON, no-boost)
-#   hist_wt_s{SEED}.npz            Phase3 history (WT ON, boost ON)
+#   hist_ctrl_s{SEED}.npz          Phase3 history (no-LVD, no-boost)
+#   hist_boost_only_s{SEED}.npz    Phase3 history (no-LVD, boost ON)
+#   hist_lvd_only_s{SEED}.npz       Phase3 history (LVD ON, no-boost)
+#   hist_lvd_s{SEED}.npz            Phase3 history (LVD ON, boost ON)
 #   model_p12_s{SEED}.npz          Phase1/2 checkpoint (reused for all forks)
 #
 # Usage:
@@ -53,14 +53,14 @@ function Run-Phase {
 foreach ($seed in $Seeds) {
     $p12Model       = "$outDir/model_p12_s${seed}.npz"
     $ctrlModel      = "$outDir/model_ctrl_s${seed}.npz"
-    $wtModel        = "$outDir/model_wt_s${seed}.npz"
+    $wtModel        = "$outDir/model_lvd_s${seed}.npz"
     $boostOnlyModel = "$outDir/model_boost_only_s${seed}.npz"
     $wtOnlyModel    = "$outDir/model_wt_only_s${seed}.npz"
     $p12Hist        = "$outDir/hist_p12_s${seed}.npz"
     $ctrlHist       = "$outDir/hist_ctrl_s${seed}.npz"
-    $wtHist         = "$outDir/hist_wt_s${seed}.npz"
+    $wtHist         = "$outDir/hist_lvd_s${seed}.npz"
     $boostOnlyHist  = "$outDir/hist_boost_only_s${seed}.npz"
-    $wtOnlyHist     = "$outDir/hist_wt_only_s${seed}.npz"
+    $wtOnlyHist     = "$outDir/hist_lvd_only_s${seed}.npz"
 
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Cyan
@@ -80,39 +80,39 @@ foreach ($seed in $Seeds) {
         )
     }
 
-    # ── Phase 3 fork A: control (no-WT, no-boost) ──────────────────
+    # ── Phase 3 fork A: control (no-LVD, no-boost) ──────────────────
     if (Test-Path $ctrlHist) {
         Write-Host "  [Phase3 CTRL] Already done, skipping: $ctrlHist" -ForegroundColor Green
     } else {
-        Run-Phase "Phase3 CTRL (no-WT, no-boost)  seed=$seed" (
+        Run-Phase "Phase3 CTRL (no-LVD, no-boost)  seed=$seed" (
             "--episodes $Phase3Ep " +
             "--hidden $Hidden --wta-k $WtaK --lr $Lr --seed $seed " +
             "--load-model `"$p12Model`" --start-phase 3 " +
-            "--no-wine-tower --no-boost " +
+            "--no-lvd --no-boost " +
             "--save-model `"$ctrlModel`" " +
             "--save-history `"$ctrlHist`""
         )
     }
 
-    # ── Phase 3 fork B: boost only (no-WT, boost ON) ───────────────
+    # ── Phase 3 fork B: boost only (no-LVD, boost ON) ───────────────
     if (Test-Path $boostOnlyHist) {
         Write-Host "  [Phase3 BOOST-ONLY] Already done, skipping: $boostOnlyHist" -ForegroundColor Green
     } else {
-        Run-Phase "Phase3 BOOST-ONLY (no-WT, boost ON)  seed=$seed" (
+        Run-Phase "Phase3 BOOST-ONLY (no-LVD, boost ON)  seed=$seed" (
             "--episodes $Phase3Ep " +
             "--hidden $Hidden --wta-k $WtaK --lr $Lr --seed $seed " +
             "--load-model `"$p12Model`" --start-phase 3 " +
-            "--no-wine-tower " +
+            "--no-lvd " +
             "--save-model `"$boostOnlyModel`" " +
             "--save-history `"$boostOnlyHist`""
         )
     }
 
-    # ── Phase 3 fork C: WT only (WT ON, no-boost) ──────────────────
+    # ── Phase 3 fork C: LVD only (LVD ON, no-boost) ──────────────────
     if (Test-Path $wtOnlyHist) {
-        Write-Host "  [Phase3 WT-ONLY]   Already done, skipping: $wtOnlyHist" -ForegroundColor Green
+        Write-Host "  [Phase3 LVD-ONLY]   Already done, skipping: $wtOnlyHist" -ForegroundColor Green
     } else {
-        Run-Phase "Phase3 WT-ONLY (WT ON, no-boost)  seed=$seed" (
+        Run-Phase "Phase3 LVD-ONLY (LVD ON, no-boost)  seed=$seed" (
             "--episodes $Phase3Ep " +
             "--hidden $Hidden --wta-k $WtaK --lr $Lr --seed $seed " +
             "--load-model `"$p12Model`" --start-phase 3 " +
@@ -122,11 +122,11 @@ foreach ($seed in $Seeds) {
         )
     }
 
-    # ── Phase 3 fork D: full method (WT ON, boost ON) ──────────────
+    # ── Phase 3 fork D: full method (LVD ON, boost ON) ──────────────
     if (Test-Path $wtHist) {
-        Write-Host "  [Phase3 WT]   Already done, skipping: $wtHist" -ForegroundColor Green
+        Write-Host "  [Phase3 LVD]   Already done, skipping: $wtHist" -ForegroundColor Green
     } else {
-        Run-Phase "Phase3 WT+boost  seed=$seed" (
+        Run-Phase "Phase3 LVD+boost  seed=$seed" (
             "--episodes $Phase3Ep " +
             "--hidden $Hidden --wta-k $WtaK --lr $Lr --seed $seed " +
             "--load-model `"$p12Model`" --start-phase 3 " +

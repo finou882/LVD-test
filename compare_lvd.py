@@ -1,17 +1,17 @@
 """
-compare_winetower.py
+compare_lvd.py
 --------------------
 Plot a side-by-side (or overlaid) comparison of:
-  - Wine-Tower enabled  (recovery condition)
-  - Wine-Tower disabled (control condition)
+  - Leaky Volume Diffusion enabled  (recovery condition)
+  - Leaky Volume Diffusion disabled (control condition)
 
 Single-seed usage
 -----------------
-  uv run python compare_winetower.py results/wt.npz results/no_wt.npz --out comparison.png
+  uv run python compare_lvd.py results/wt.npz results/no_wt.npz --out comparison.png
 
 Multi-seed usage (mean ± std across seeds 42, 123, 456)
 ---------------------------------------------------------
-  uv run python compare_winetower.py --multi-seed --out comparison_multiseed.png
+  uv run python compare_lvd.py --multi-seed --out comparison_multiseed.png
 """
 
 import argparse
@@ -21,8 +21,8 @@ import matplotlib.gridspec as gridspec
 
 
 SEEDS = [42, 123, 456]
-COLOR_WT   = "#2196F3"   # blue
-COLOR_NOWT = "#F44336"   # red
+COLOR_LVD   = "#2196F3"   # blue
+COLOR_NOLVD = "#F44336"   # red
 
 
 def load(path: str) -> dict:
@@ -52,7 +52,7 @@ def stack_seeds(prefix: str, seeds, key: str) -> np.ndarray:
 
 def plot_single(args):
     wt    = load(args.wt_file)
-    no_wt = load(args.no_wt_file)
+    no_wt = load(args.no_lvd_file)
     W = args.window
 
     ep_wt    = wt["episode"]
@@ -67,11 +67,11 @@ def plot_single(args):
         return (data["n_dead_hidden1"] + data["n_dead_hidden2"] + data["n_dead_hidden3"])
 
     ax1.plot(ep_no_wt, get_total_dead(no_wt),
-             color=COLOR_NOWT, linewidth=1.2, label="No Wine-Tower (control, seed42)")
+             color=COLOR_NOLVD, linewidth=1.2, label="No Leaky Volume Diffusion (control, seed42)")
     ax1.plot(ep_wt, get_total_dead(wt),
-             color=COLOR_WT,   linewidth=1.8, label="Wine-Tower seed42", zorder=3)
+             color=COLOR_LVD,   linewidth=1.8, label="Leaky Volume Diffusion seed42", zorder=3)
 
-    # Extra WT runs (other seeds)
+    # Extra LVD runs (other seeds)
     extra_colors = ["#64B5F6", "#1565C0", "#4FC3F7", "#0288D1"]
     for i, path in enumerate(args.extra_wt or []):
         try:
@@ -80,13 +80,13 @@ def plot_single(args):
             ax1.plot(ex["episode"], get_total_dead(ex),
                      color=extra_colors[i % len(extra_colors)],
                      linewidth=1.2, linestyle="--", alpha=0.8,
-                     label=f"Wine-Tower {label}")
+                     label=f"Leaky Volume Diffusion {label}")
         except (FileNotFoundError, KeyError):
             print(f"Warning: {path} not found or missing keys, skipping.")
 
     ax1.set_ylabel("Total dead hidden neurons (H1+H2+H3)")
     ax1.set_xlabel("Episode")
-    ax1.set_title("Dead Neuron Count: Wine-Tower vs Control", fontsize=11)
+    ax1.set_title("Dead Neuron Count: Leaky Volume Diffusion vs Control", fontsize=11)
     ax1.legend(fontsize=9)
     ax1.grid(True, alpha=0.3)
 
@@ -95,25 +95,25 @@ def plot_single(args):
     ax1.annotate(f"end={final_wt}",
                  xy=(ep_wt[-1], final_wt),
                  xytext=(-60, 8), textcoords="offset points",
-                 color=COLOR_WT, fontsize=8,
-                 arrowprops=dict(arrowstyle="->", color=COLOR_WT))
+                 color=COLOR_LVD, fontsize=8,
+                 arrowprops=dict(arrowstyle="->", color=COLOR_LVD))
     ax1.annotate(f"end={final_nowt}",
                  xy=(ep_no_wt[-1], final_nowt),
                  xytext=(-60, 8), textcoords="offset points",
-                 color=COLOR_NOWT, fontsize=8,
-                 arrowprops=dict(arrowstyle="->", color=COLOR_NOWT))
+                 color=COLOR_NOLVD, fontsize=8,
+                 arrowprops=dict(arrowstyle="->", color=COLOR_NOLVD))
 
     ax2 = fig.add_subplot(gs[1, :])
     
-    # Plot No-WT success rate
+    # Plot No-LVD success rate
     roll_no = rolling(no_wt["success"], W) * 100
-    ax2.plot(range(W - 1, len(ep_no_wt)), roll_no, color=COLOR_NOWT, linewidth=1.2, label="No Wine-Tower (control, seed42)")
+    ax2.plot(range(W - 1, len(ep_no_wt)), roll_no, color=COLOR_NOLVD, linewidth=1.2, label="No Leaky Volume Diffusion (control, seed42)")
     
-    # Plot WT success rate (seed 42)
+    # Plot LVD success rate (seed 42)
     roll_wt = rolling(wt["success"], W) * 100
-    ax2.plot(range(W - 1, len(ep_wt)), roll_wt, color=COLOR_WT, linewidth=1.8, label="Wine-Tower seed42")
+    ax2.plot(range(W - 1, len(ep_wt)), roll_wt, color=COLOR_LVD, linewidth=1.8, label="Leaky Volume Diffusion seed42")
 
-    # Plot extra WT runs success rate
+    # Plot extra LVD runs success rate
     for i, path in enumerate(args.extra_wt or []):
         try:
             ex = load(path)
@@ -122,17 +122,17 @@ def plot_single(args):
             ax2.plot(range(W - 1, len(ex["episode"])), roll_ex,
                      color=extra_colors[i % len(extra_colors)],
                      linewidth=1.2, linestyle="--", alpha=0.8,
-                     label=f"Wine-Tower {label}")
+                     label=f"Leaky Volume Diffusion {label}")
         except (FileNotFoundError, KeyError):
             pass
 
-    ax2.set_title("Success rate: Wine-Tower vs Control", fontsize=11)
+    ax2.set_title("Success rate: Leaky Volume Diffusion vs Control", fontsize=11)
     ax2.set_ylabel(f"Rolling acc ({W}-ep) %")
     ax2.set_xlabel("Episode"); ax2.set_ylim(0, 50); ax2.grid(True, alpha=0.3)
     ax2.legend(fontsize=9)
 
     plt.suptitle(
-        "Wine-Tower Recovery in WTA-SNN  ·  Phase 3 (all-10-goals recall)",
+        "Leaky Volume Diffusion Recovery in WTA-SNN  ·  Phase 3 (all-10-goals recall)",
         fontsize=12, y=1.01)
     plt.savefig(args.out, dpi=150, bbox_inches="tight")
     print(f"Comparison figure saved to: {args.out}")
@@ -141,12 +141,12 @@ def plot_single(args):
 def plot_multi_seed(args):
     W = args.window
 
-    dead_wt   = stack_seeds("wt",    SEEDS, "n_dead_hidden")
+    dead_lvd   = stack_seeds("wt",    SEEDS, "n_dead_hidden")
     dead_no   = stack_seeds("no_wt", SEEDS, "n_dead_hidden")
-    succ_wt   = stack_seeds("wt",    SEEDS, "success")
+    succ_lvd   = stack_seeds("wt",    SEEDS, "success")
     succ_no   = stack_seeds("no_wt", SEEDS, "success")
 
-    T = dead_wt.shape[1]
+    T = dead_lvd.shape[1]
     episodes = np.arange(T)
 
     fig = plt.figure(figsize=(14, 9))
@@ -155,8 +155,8 @@ def plot_multi_seed(args):
     # ── Panel 1: Dead neurons mean ± std ────────────────────────────
     ax1 = fig.add_subplot(gs[0, :])
     for arr, color, label in [
-        (dead_no, COLOR_NOWT, "No Wine-Tower (control)"),
-        (dead_wt, COLOR_WT,   "Wine-Tower (recovery)"),
+        (dead_no, COLOR_NOLVD, "No Leaky Volume Diffusion (control)"),
+        (dead_lvd, COLOR_LVD,   "Leaky Volume Diffusion (recovery)"),
     ]:
         mean = arr.mean(axis=0)
         std  = arr.std(axis=0)
@@ -169,7 +169,7 @@ def plot_multi_seed(args):
     ax1.legend(fontsize=9); ax1.grid(True, alpha=0.3)
 
     # Annotate final means
-    for arr, color in [(dead_wt, COLOR_WT), (dead_no, COLOR_NOWT)]:
+    for arr, color in [(dead_lvd, COLOR_LVD), (dead_no, COLOR_NOLVD)]:
         final = arr.mean(axis=0)[-1]
         ax1.annotate(f"end={final:.1f}",
                      xy=(episodes[-1], final),
@@ -179,10 +179,10 @@ def plot_multi_seed(args):
 
     # ── Panel 2/3: Rolling accuracy mean ± std ──────────────────────
     for ax, arr, color, title in [
-        (fig.add_subplot(gs[1, 0]), succ_wt,   COLOR_WT,
-         "Success rate – Wine-Tower"),
-        (fig.add_subplot(gs[1, 1]), succ_no,   COLOR_NOWT,
-         "Success rate – No Wine-Tower"),
+        (fig.add_subplot(gs[1, 0]), succ_lvd,   COLOR_LVD,
+         "Success rate – Leaky Volume Diffusion"),
+        (fig.add_subplot(gs[1, 1]), succ_no,   COLOR_NOLVD,
+         "Success rate – No Leaky Volume Diffusion"),
     ]:
         rolls = np.stack([rolling(arr[i], W) * 100 for i in range(len(SEEDS))])
         mean  = rolls.mean(axis=0)
@@ -196,7 +196,7 @@ def plot_multi_seed(args):
         ax.set_ylim(0, 50); ax.grid(True, alpha=0.3)
 
     plt.suptitle(
-        f"Wine-Tower Recovery in WTA-SNN  ·  Phase 3  (n={len(SEEDS)} seeds)",
+        f"Leaky Volume Diffusion Recovery in WTA-SNN  ·  Phase 3  (n={len(SEEDS)} seeds)",
         fontsize=12, y=1.01)
     plt.savefig(args.out, dpi=150, bbox_inches="tight")
     print(f"Multi-seed comparison saved to: {args.out}")
@@ -204,12 +204,12 @@ def plot_multi_seed(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("wt_file",  nargs="?", help="History npz WITH Wine-Tower (single-seed)")
-    parser.add_argument("no_wt_file", nargs="?", help="History npz WITHOUT Wine-Tower (single-seed)")
+    parser.add_argument("wt_file",  nargs="?", help="History npz WITH Leaky Volume Diffusion (single-seed)")
+    parser.add_argument("no_lvd_file", nargs="?", help="History npz WITHOUT Leaky Volume Diffusion (single-seed)")
     parser.add_argument("--multi-seed", action="store_true",
-                        help="Load results/wt_seedN.npz and results/no_wt_seedN.npz for all seeds")
+                        help="Load results/lvd_seedN.npz and results/no_lvd_seedN.npz for all seeds")
     parser.add_argument("--extra-wt", nargs="+", metavar="FILE.npz",
-                        help="Additional WT history files to overlay on the dead-neuron panel")
+                        help="Additional LVD history files to overlay on the dead-neuron panel")
     parser.add_argument("--out", default="comparison_winetower.png")
     parser.add_argument("--window", type=int, default=50)
     args = parser.parse_args()
@@ -217,8 +217,8 @@ def main():
     if args.multi_seed:
         plot_multi_seed(args)
     else:
-        if not args.wt_file or not args.no_wt_file:
-            parser.error("Provide wt_file and no_wt_file, or use --multi-seed")
+        if not args.wt_file or not args.no_lvd_file:
+            parser.error("Provide wt_file and no_lvd_file, or use --multi-seed")
         plot_single(args)
 
 

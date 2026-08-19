@@ -113,19 +113,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-phase", type=int, default=3,
                         choices=[1, 2, 3], metavar="PHASE",
                         help="Stop training when curriculum advances past this phase.")
-    parser.add_argument("--no-wine-tower", action="store_true",
-                        help="Disable Wine-Tower recovery (for ablation/control experiments).")
+    parser.add_argument("--no-lvd", action="store_true",
+                        help="Disable Leaky Volume Diffusion recovery (for ablation/control experiments).")
     parser.add_argument("--no-boost", action="store_true",
                         help="Disable STDP reward amplification (use raw reward, no x20/x2 scaling).")
     parser.add_argument("--no-neg-diff", action="store_true",
-                        help="Disable negative diffusion (apply max(0, W) for recurrent weights in Wine-Tower).")
+                        help="Disable negative diffusion (apply max(0, W) for recurrent weights in Leaky Volume Diffusion).")
     parser.add_argument("--save-history", type=str, default=None,
                         metavar="FILE.npz",
                         help="Save training history (dead neurons, acc, etc.) to this file.")
-    parser.add_argument("--wine-strength", type=float, default=50.0,
-                        help="Alpha multiplier for Wine-Tower diffusion current.")
-    parser.add_argument("--homeo-gain", type=float, default=1.0,
-                        help="Multiplier for input current to dead neurons during Wine-Tower (Homeostatic Scaling).")
+    parser.add_argument("--alpha", type=float, default=50.0,
+                        help="Leaky Volume Diffusion potential diffusion strength (alpha)")
+    parser.add_argument("--gamma", type=float, default=1.0,
+                        help="Homeostatic input scaling gain (gamma)")
 
     return parser.parse_args()
 
@@ -146,7 +146,7 @@ def validate_goals(fixed_goals, n_goals=N_GOALS):
 
 def print_config(args, fixed_goals):
     print("=" * 60)
-    print("  Multiple-TMaze  ·  LIF+STDP SNN  ·  Lifelong Learning")
+    print("  Multiple-TMaze  -  LIF+STDP SNN  -  Lifelong Learning")
     print("=" * 60)
     if fixed_goals is not None:
         print(f"  Mode         : FIXED goals {fixed_goals}")
@@ -354,7 +354,7 @@ def plot_weight_heatmaps(agent, save_path: str) -> None:
     fig.legend(handles=legend_el, loc="lower center", ncol=2,
                bbox_to_anchor=(0.5, -0.04))
 
-    plt.suptitle("SNN Weight Heatmaps  ·  LIF+STDP+WTA  (Phase 1/2)", y=1.01)
+    plt.suptitle("SNN Weight Heatmaps  -  LIF+STDP+WTA  (Phase 1/2)", y=1.01)
     plt.savefig(save_path, dpi=200, bbox_inches="tight")
     print(f"Weight heatmap saved to: {save_path}")
 
@@ -401,9 +401,9 @@ def main():
         max_steps=args.max_steps,
         replay_interval=args.replay_interval,
         verbose_every=args.verbose_every,
-        wine_tower=not args.no_wine_tower,
-        wine_strength=args.wine_strength,
-        homeo_gain=args.homeo_gain,
+        lvd=not args.no_lvd,
+        alpha=args.alpha,
+        gamma=args.gamma,
         stdp_boost=not args.no_boost,
         neg_diff=not args.no_neg_diff,
     )

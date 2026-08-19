@@ -63,7 +63,7 @@ class SNNAgent:
         # Layers
         # dead_window: ~2000 env-steps × encode_steps
         dead_win = encode_steps * 2000
-        lif_kwargs = dict(tau_m=20.0, V_rest=0.0, V_thresh=1.0,
+        lif_kwargs = dict(tau_m=20.0, v_rest=0.0, v_thresh=1.0,
                           t_refrac=3, dt=1.0,
                           dead_window=dead_win, dead_threshold=0.003)
 
@@ -71,14 +71,14 @@ class SNNAgent:
         self.hidden2 = WTALayer(n_hidden, k=wta_k, **lif_kwargs)
         self.hidden3 = WTALayer(n_hidden, k=wta_k, **lif_kwargs)
         self.output = LIFLayer(act_dim,
-                               tau_m=10.0, V_rest=0.0, V_thresh=1.0,
+                               tau_m=10.0, v_rest=0.0, v_thresh=1.0,
                                t_refrac=2, dt=1.0,
                                dead_window=dead_win, dead_threshold=0.003)
 
         self.hiddens = [self.hidden1, self.hidden2, self.hidden3]
 
         # Synapses
-        stdp_common = dict(lr=lr, A_plus=0.02, A_minus=0.01,
+        stdp_common = dict(lr=lr, a_plus=0.02, a_minus=0.01,
                            tau_plus=20.0, tau_minus=20.0, dt=1.0,
                            w_min=-2.0, w_max=2.0, rng=self.rng)
 
@@ -181,11 +181,11 @@ class SNNAgent:
         return action
 
     # ------------------------------------------------------------------
-    def wine_tower_replay(
+    def lvd_replay(
         self,
         trajectories: list,
-        wine_strength: float = 50.0,
-        homeo_gain: float = 1.0,
+        alpha: float = 50.0,
+        gamma: float = 1.0,
         n_passes: int = 2,
         neg_diff: bool = True,
     ) -> None:
@@ -219,42 +219,42 @@ class SNNAgent:
                         I_h1 = self.W_in.forward(in_spikes)
                         if self.recurrent: I_h1 += self.W_rec1.forward(self._last_h_spikes[0])
                         # Homeostatic Scaling: boost input current for dead neurons
-                        if homeo_gain != 1.0 and self.hidden1.dead_mask.any():
-                            I_h1 = np.where(self.hidden1.dead_mask, I_h1 * homeo_gain, I_h1)
+                        if gamma != 1.0 and self.hidden1.dead_mask.any():
+                            I_h1 = np.where(self.hidden1.dead_mask, I_h1 * gamma, I_h1)
                         assist_I_h1 = None
                         if self.recurrent and self.hidden1.dead_mask.any():
                             live = self._last_h_spikes[0] & ~self.hidden1.dead_mask
-                            W_eff = W_list[0] if neg_diff else np.maximum(0, W_list[0])
-                            assist_I_h1 = wine_strength * (W_eff @ live.astype(np.float64))
-                        h1_spikes = self.hidden1.step(I_h1, assist_I=assist_I_h1)
+                            w_eff = W_list[0] if neg_diff else np.maximum(0, W_list[0])
+                            assist_I_h1 = alpha * (w_eff @ live.astype(np.float64))
+                        h1_spikes = self.hidden1.step(I_h1, i_assist=assist_I_h1)
                         revived[0] |= (h1_spikes & self.hidden1.dead_mask)
 
                         # H2
                         I_h2 = self.W_12.forward(h1_spikes)
                         if self.recurrent: I_h2 += self.W_rec2.forward(self._last_h_spikes[1])
                         # Homeostatic Scaling
-                        if homeo_gain != 1.0 and self.hidden2.dead_mask.any():
-                            I_h2 = np.where(self.hidden2.dead_mask, I_h2 * homeo_gain, I_h2)
+                        if gamma != 1.0 and self.hidden2.dead_mask.any():
+                            I_h2 = np.where(self.hidden2.dead_mask, I_h2 * gamma, I_h2)
                         assist_I_h2 = None
                         if self.recurrent and self.hidden2.dead_mask.any():
                             live = self._last_h_spikes[1] & ~self.hidden2.dead_mask
-                            W_eff = W_list[1] if neg_diff else np.maximum(0, W_list[1])
-                            assist_I_h2 = wine_strength * (W_eff @ live.astype(np.float64))
-                        h2_spikes = self.hidden2.step(I_h2, assist_I=assist_I_h2)
+                            w_eff = W_list[1] if neg_diff else np.maximum(0, W_list[1])
+                            assist_I_h2 = alpha * (w_eff @ live.astype(np.float64))
+                        h2_spikes = self.hidden2.step(I_h2, i_assist=assist_I_h2)
                         revived[1] |= (h2_spikes & self.hidden2.dead_mask)
 
                         # H3
                         I_h3 = self.W_23.forward(h2_spikes)
                         if self.recurrent: I_h3 += self.W_rec3.forward(self._last_h_spikes[2])
                         # Homeostatic Scaling
-                        if homeo_gain != 1.0 and self.hidden3.dead_mask.any():
-                            I_h3 = np.where(self.hidden3.dead_mask, I_h3 * homeo_gain, I_h3)
+                        if gamma != 1.0 and self.hidden3.dead_mask.any():
+                            I_h3 = np.where(self.hidden3.dead_mask, I_h3 * gamma, I_h3)
                         assist_I_h3 = None
                         if self.recurrent and self.hidden3.dead_mask.any():
                             live = self._last_h_spikes[2] & ~self.hidden3.dead_mask
-                            W_eff = W_list[2] if neg_diff else np.maximum(0, W_list[2])
-                            assist_I_h3 = wine_strength * (W_eff @ live.astype(np.float64))
-                        h3_spikes = self.hidden3.step(I_h3, assist_I=assist_I_h3)
+                            w_eff = W_list[2] if neg_diff else np.maximum(0, W_list[2])
+                            assist_I_h3 = alpha * (w_eff @ live.astype(np.float64))
+                        h3_spikes = self.hidden3.step(I_h3, i_assist=assist_I_h3)
                         revived[2] |= (h3_spikes & self.hidden3.dead_mask)
 
                         # Output

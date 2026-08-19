@@ -45,8 +45,8 @@ def main():
         ax.fill_between(x, mean - std, mean + std, color=color, alpha=0.2)
 
     # Plot Accuracy
-    plot_mean_std(axes[0], ep_old, acc_old, "blue", "Old WT (Struct Recovery)")
-    plot_mean_std(axes[0], ep_new, acc_new, "red", "New WT (Sparse/Neg-Diff)")
+    plot_mean_std(axes[0], ep_old, acc_old, "blue", "Old LVD (Struct Recovery)")
+    plot_mean_std(axes[0], ep_new, acc_new, "red", "New LVD (Sparse/Neg-Diff)")
     axes[0].set_title("Rolling Success Rate (%)")
     axes[0].set_xlabel("Episode")
     axes[0].set_ylabel("Accuracy")
@@ -54,8 +54,8 @@ def main():
     axes[0].grid(True)
 
     # Plot Dead Neurons (H1)
-    plot_mean_std(axes[1], ep_old, dead_old, "blue", "Old WT")
-    plot_mean_std(axes[1], ep_new, dead_new, "red", "New WT")
+    plot_mean_std(axes[1], ep_old, dead_old, "blue", "Old LVD")
+    plot_mean_std(axes[1], ep_new, dead_new, "red", "New LVD")
     axes[1].set_title("Dead Neurons in Hidden 1")
     axes[1].set_xlabel("Episode")
     axes[1].set_ylabel("Count (max 64)")

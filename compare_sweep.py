@@ -35,15 +35,15 @@ def main():
 
     colors = ['blue', 'green', 'orange', 'purple']
     
-    # WT No
-    plot_data(f"results/no_wt_seed{args.seed}.npz", "NO WT", "black", "--")
+    # LVD No
+    plot_data(f"results/no_lvd_seed{args.seed}.npz", "NO LVD", "black", "--")
     
-    # WT with different strengths
+    # LVD with different strengths
     for i, s in enumerate(strengths):
-        plot_data(f"results/wt_s{int(s) if s.is_integer() else s}_seed{args.seed}.npz", f"WT (alpha={s})", colors[i], "-")
+        plot_data(f"results/lvd_s{int(s) if s.is_integer() else s}_seed{args.seed}.npz", f"LVD (alpha={s})", colors[i], "-")
         
     # Plot combined
-    plot_data(f"results/wt_combined_seed{args.seed}.npz", "WT Combined (alpha=10)", "red", "-.")
+    plot_data(f"results/lvd_combined_seed{args.seed}.npz", "LVD Combined (alpha=10)", "red", "-.")
 
     axes[0].set_title("Dead Neurons in Hidden 1")
     axes[0].set_xlabel("Episode")

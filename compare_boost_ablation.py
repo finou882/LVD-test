@@ -12,10 +12,10 @@ Two outputs from the ablation experiment:
       Saved to: articles/images/fig6.png  (overwrites)
 
 Data source: results/boost_ablation/
-  hist_ctrl_s{42,123,456}.npz          -- control (no-WT, no-boost)
-  hist_boost_only_s{42,123,456}.npz    -- R-STDP boost only (no-WT, boost ON)
-  hist_wt_only_s{42,123,456}.npz       -- Wine-Tower only  (WT ON,  no-boost)
-  hist_wt_s{42,123,456}.npz            -- full method (WT ON, boost ON)
+  hist_ctrl_s{42,123,456}.npz          -- control (no-LVD, no-boost)
+  hist_boost_only_s{42,123,456}.npz    -- R-STDP boost only (no-LVD, boost ON)
+  hist_lvd_only_s{42,123,456}.npz       -- Leaky Volume Diffusion only  (LVD ON,  no-boost)
+  hist_lvd_s{42,123,456}.npz            -- full method (LVD ON, boost ON)
 
 Usage:
   uv run python compare_boost_ablation.py
@@ -34,14 +34,14 @@ DATA_DIR = pathlib.Path("results/boost_ablation")
 OUT_ABLATION = pathlib.Path("articles/images/fig_ablation.png")
 OUT_FIG6     = pathlib.Path("articles/images/fig6.png")
 
-COLOR_WT_SEEDS         = ["#1976D2", "#42A5F5", "#90CAF9"]   # blue family
+COLOR_LVD_SEEDS         = ["#1976D2", "#42A5F5", "#90CAF9"]   # blue family
 COLOR_CTRL_SEEDS       = ["#D32F2F", "#EF5350", "#FFCDD2"]   # red family
 COLOR_BOOST_ONLY_SEEDS = ["#F57C00", "#FFA726", "#FFCC80"]   # orange family
-COLOR_WT_ONLY_SEEDS    = ["#388E3C", "#66BB6A", "#A5D6A7"]   # green family
-COLOR_WT_MEAN         = "#1565C0"
+COLOR_LVD_ONLY_SEEDS    = ["#388E3C", "#66BB6A", "#A5D6A7"]   # green family
+COLOR_LVD_MEAN         = "#1565C0"
 COLOR_CTRL_MEAN       = "#B71C1C"
 COLOR_BOOST_ONLY_MEAN = "#E65100"
-COLOR_WT_ONLY_MEAN    = "#1B5E20"
+COLOR_LVD_ONLY_MEAN    = "#1B5E20"
 
 
 def load(path: str) -> dict:
@@ -75,16 +75,16 @@ def load_seeds(prefix, seeds):
 def plot_ablation(wt_list, ctrl_list, boost_only_list, wt_only_list, window, out_path):
     """
     Figure: 12 individual success-rate curves (Phase-3 only).
-    3 blue   = WT+boost (full), 3 red  = control,
+    3 blue   = LVD+boost (full), 3 red  = control,
     3 orange = boost-only,      3 green = wt-only
     """
     fig, ax = plt.subplots(figsize=(12, 5))
 
     groups = [
-        (ctrl_list,       COLOR_CTRL_SEEDS,       COLOR_CTRL_MEAN,       "Control (no-WT, no-boost)",  "--"),
-        (boost_only_list, COLOR_BOOST_ONLY_SEEDS,  COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-WT)",         "-."),
-        (wt_only_list,    COLOR_WT_ONLY_SEEDS,     COLOR_WT_ONLY_MEAN,    "WT-Only (no-boost)",          ":"),
-        (wt_list,         COLOR_WT_SEEDS,          COLOR_WT_MEAN,         "Wine-Tower + STDP Boost",    "-"),
+        (ctrl_list,       COLOR_CTRL_SEEDS,       COLOR_CTRL_MEAN,       "Control (no-LVD, no-boost)",  "--"),
+        (boost_only_list, COLOR_BOOST_ONLY_SEEDS,  COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-LVD)",         "-."),
+        (wt_only_list,    COLOR_LVD_ONLY_SEEDS,     COLOR_LVD_ONLY_MEAN,    "LVD-Only (no-boost)",          ":"),
+        (wt_list,         COLOR_LVD_SEEDS,          COLOR_LVD_MEAN,         "Leaky Volume Diffusion + STDP Boost",    "-"),
     ]
     from matplotlib.lines import Line2D
     legend_custom = []
@@ -124,17 +124,17 @@ def plot_fig6(wt_list, ctrl_list, boost_only_list, wt_only_list, window, out_pat
         min_len = min(len(a) for a in arrays)
         return np.stack([a[:min_len] for a in arrays])
 
-    dead_wt         = align([total_dead(d) for d in wt_list])
+    dead_lvd         = align([total_dead(d) for d in wt_list])
     dead_ctrl       = align([total_dead(d) for d in ctrl_list])
     dead_boost_only = align([total_dead(d) for d in boost_only_list])
-    dead_wt_only    = align([total_dead(d) for d in wt_only_list])
+    dead_lvd_only    = align([total_dead(d) for d in wt_only_list])
 
-    succ_wt         = align([d["success"].astype(float) for d in wt_list])
+    succ_lvd         = align([d["success"].astype(float) for d in wt_list])
     succ_ctrl       = align([d["success"].astype(float) for d in ctrl_list])
     succ_boost_only = align([d["success"].astype(float) for d in boost_only_list])
-    succ_wt_only    = align([d["success"].astype(float) for d in wt_only_list])
+    succ_lvd_only    = align([d["success"].astype(float) for d in wt_only_list])
 
-    T = dead_wt.shape[1]
+    T = dead_lvd.shape[1]
     episodes = np.arange(T)
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True,
@@ -142,10 +142,10 @@ def plot_fig6(wt_list, ctrl_list, boost_only_list, wt_only_list, window, out_pat
 
     # ── Top panel: dead neurons ───────────────────────────────────
     dead_groups = [
-        (dead_ctrl,       COLOR_CTRL_MEAN,       "Control (no-WT, no-boost)",  "--"),
-        (dead_boost_only, COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-WT)",         "-."),
-        (dead_wt_only,    COLOR_WT_ONLY_MEAN,    "WT-Only (no-boost)",          ":"),
-        (dead_wt,         COLOR_WT_MEAN,         "Wine-Tower + STDP Boost",    "-"),
+        (dead_ctrl,       COLOR_CTRL_MEAN,       "Control (no-LVD, no-boost)",  "--"),
+        (dead_boost_only, COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-LVD)",         "-."),
+        (dead_lvd_only,    COLOR_LVD_ONLY_MEAN,    "LVD-Only (no-boost)",          ":"),
+        (dead_lvd,         COLOR_LVD_MEAN,         "Leaky Volume Diffusion + STDP Boost",    "-"),
     ]
     for arr, color, label, ls in dead_groups:
         mean = arr.mean(axis=0)
@@ -170,10 +170,10 @@ def plot_fig6(wt_list, ctrl_list, boost_only_list, wt_only_list, window, out_pat
 
     # ── Bottom panel: success rate ────────────────────────────────
     succ_groups = [
-        (succ_ctrl,       COLOR_CTRL_MEAN,       "Control (no-WT, no-boost)",  "--"),
-        (succ_boost_only, COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-WT)",         "-."),
-        (succ_wt_only,    COLOR_WT_ONLY_MEAN,    "WT-Only (no-boost)",          ":"),
-        (succ_wt,         COLOR_WT_MEAN,         "Wine-Tower + STDP Boost",    "-"),
+        (succ_ctrl,       COLOR_CTRL_MEAN,       "Control (no-LVD, no-boost)",  "--"),
+        (succ_boost_only, COLOR_BOOST_ONLY_MEAN, "Boost-Only (no-LVD)",         "-."),
+        (succ_lvd_only,    COLOR_LVD_ONLY_MEAN,    "LVD-Only (no-boost)",          ":"),
+        (succ_lvd,         COLOR_LVD_MEAN,         "Leaky Volume Diffusion + STDP Boost",    "-"),
     ]
     for arr, color, label, ls in succ_groups:
         rolls = np.stack([rolling(arr[i], window) * 100 for i in range(len(SEEDS))])
