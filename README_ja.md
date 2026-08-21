@@ -17,7 +17,7 @@ WTA-LIF スパイキングニューラルネットワークにおいて死滅（
 エージェントは3層深層WTA-LIFアーキテクチャとR-STDPを用いて、
 **多段T字迷路（5ゴール・5分岐）** 生涯学習ベンチマークで訓練されます。
 
-論文: *生物学的アプローチに基づいたLIFネットワークの電位拡散モデル (Leaky Volume Diffusion) によるSpiking Neural NetworkのDead-Neuron問題の解決* — 井上文朗, 2026.
+論文: *生物学的アプローチに基づいたLIFネットワークの電位拡散モデル (Leaky Volume Diffusion) によるSpiking Neural NetworkのDead-Neuron問題の解決* — 井上史彬, 2026.
 
 ### 主要発見
 - **構造回復**: Leaky Volume Diffusionは再帰結合を介した膜電位拡散により死滅ニューロンのほぼ全数を蘇生させる。
