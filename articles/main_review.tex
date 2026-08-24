@@ -205,16 +205,11 @@ w/o NegDiff ($\alpha=10$, No NegDiff, $\gamma=5$) & 17.20 $\pm$ 2.40 & $p = 0.91
 w/o Homeo ($\alpha=10$, NegDiff, No Homeo) & 17.40 $\pm$ 2.58 & $p = 0.83$ & 13.4 $\pm$ 2.2 & $p = 0.16$ \\
 LVD v2 $\alpha=50$ ($\alpha=50$, NegDiff, $\gamma=5$) & 16.60 $\pm$ 3.14 & $p = 0.85$ & 10.4 $\pm$ 2.6 & $p = 0.91$ \\ \bottomrule
 \end{tabular}
-\end{table*}
-
-\begin{figure*}[t]
-    \centering
+\vspace{1cm} \makeatletter\def\@captype{figure}\makeatother
     \includegraphics[width=0.7\linewidth]{fig_ablation}
     \caption{LVD v2構成要素のAblationプロット（左: 無活動ニューロン数、右: 移動平均正答率）}
     \label{fig:ablation}
-\end{figure*}
-
-表\ref{tab:ablation}および図\ref{fig:ablation}の結果から、以下の重要な知見が得られた。第一に、Homeostatic Scaling単独（Homeostatic Baseline）では、WTA競争下でのDead-Neuron問題を解決できず、正答率の改善は見られなかった。第二に、正答率そのものはどのAblation条件においても約16.6\%〜17.4\%の範囲に収まり、有意な変化は見られなかった。
+\end{table*} 表\ref{tab:ablation}および図\ref{fig:ablation}の結果から、以下の重要な知見が得られた。第一に、Homeostatic Scaling単独（Homeostatic Baseline）では、WTA競争下でのDead-Neuron問題を解決できず、正答率の改善は見られなかった。第二に、正答率そのものはどのAblation条件においても約16.6\%〜17.4\%の範囲に収まり、有意な変化は見られなかった。
 
 これは決してネガティブな結果ではなく、むしろ本研究の核心を突くものである。すなわち、\textbf{LVD v2は正答率（性能）を上げるための手法ではなく、性能を維持したまま構造的スパース性を管理するための制御メカニズムである}という事実が明らかになった。
 
@@ -229,7 +224,6 @@ Ablation実験によって示されたように、ネガティブ拡散は高い
 \section{Conclusion}
 本研究では、WTA競争を伴うSNNの無活動ニューロン問題に対し、ネガティブ拡散を含む局所再帰的な電位拡散モデル（LVD v2）を提案し、6-Arm Star Maze環境~\cite{tolman1946spatial,olton1976spatial}においてその有効性を実証した。Ablation実験を通じて、\textbf{LVD v2は単なる性能向上のための手法ではなく、高い機能的パフォーマンスを維持したまま、ネットワークの構造的スパース性を自在に制御するメタ可塑性の制御メカニズムである}ことが証明された。「無活動ニューロンをすべて復旧させる」のではなく、「ネガティブ拡散によって適度なスパース性を保ちながら一部を復旧させる」制御が、生涯学習~\cite{parisi2019continual}におけるアトラクターの緩和と構造的スパース性の維持に不可欠であるという新しい計算論的知見を示した。
 
-\clearpage
 \bibliographystyle{ipsjunsrt}
 \bibliography{references}
 \end{document}
