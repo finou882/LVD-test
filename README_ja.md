@@ -8,7 +8,8 @@
 # Leaky Volume Diffusion — SNNのDead-Neuron問題の解決
 
 > [!NOTE]
-> 本手法は開発初期において「Wine-Tower」というコードネームで呼ばれていましたが、論文執筆にあたり正式名称「**Leaky Volume Diffusion (LVD)**」に変更されました。これに伴い、後日リポジトリ名も変更される予定です。
+> 本手法は開発初期において「Wine-Tower」というコードネームで呼ばれていましたが、論文執筆にあたり正式名称「**Leaky Volume Diffusion (LVD)**」に変更されました。これに伴い、後日リポジトリ名も変更される予定です (追記:変更されました)。
+> このプロジェクトは諸事情によりコミット履歴や一部のコードが欠落している可能性があります。
 
 本リポジトリは**Leaky Volume Diffusionモデル**を実装します。
 WTA-LIF スパイキングニューラルネットワークにおいて死滅（沈黙）したニューロンを、
@@ -49,7 +50,7 @@ pip install -r requirements.txt
 ## クイックスタート
 
 ```bash
-# デフォルト学習 (Phase 1→3, seed 42, Leaky Volume Diffusion ON)
+# デフォルト学習 (Phase 1→3, seed 42, LVD ON)
 uv run python main.py
 
 # モデルと学習履歴を保存

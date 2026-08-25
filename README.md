@@ -9,6 +9,7 @@
 
 > [!NOTE]
 > During early development, this method was codenamed "Wine-Tower". It has been formally renamed to "**Leaky Volume Diffusion (LVD)**" for the publication. The repository name will likely be updated in the near future to reflect this change.
+> Due to various circumstances, this project may be missing commit history or some parts of the code.
 
 This repository implements the **Leaky Volume Diffusion model**,
 a biologically-inspired mechanism that revives dead (silent) neurons in WTA-LIF Spiking Neural Networks
